@@ -1,0 +1,19 @@
+{
+  "name": "Ikki qalb — sevishganlar muzeyi",
+  "short_name": "Ikki qalb",
+  "description": "Sevishganlar muzeyidagi xotiralar va hikoyalar olamiga sayr qiling.",
+  "lang": "uz",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#111714",
+  "theme_color": "#111714",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#111714">
+  <meta name="description" content="Ikki qalb — sevishganlar muzeyidagi xotiralar va hikoyalar olamiga sayr qiling.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <title>Ikki qalb — sevishganlar muzeyi</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111714;
+      --panel: #1a211d;
+      --panel-light: #222b25;
+      --line: rgba(235, 231, 211, .12);
+      --text: #f0eee4;
+      --muted: #a4a99d;
+      --accent: #d3a85e;
+      --accent-light: #ead09a;
+      --green: #879d7e;
+      --serif: Georgia, "Times New Roman", serif;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--bg); }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    .hidden { display: none !important; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; clip-path: inset(50%); }
+    .eyebrow { color: var(--accent-light); font-size: .68rem; font-weight: 750; letter-spacing: .2em; text-transform: uppercase; }
+    .muted { color: var(--muted); }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark { display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid rgba(211,168,94,.48); border-radius: 50%; color: var(--accent-light); font-family: var(--serif); font-size: 1.25rem; }
+    .brand-name { font-family: var(--serif); font-size: 1.14rem; letter-spacing: .04em; }
+    .brand-sub { margin-top: 2px; color: var(--muted); font-size: .63rem; letter-spacing: .16em; text-transform: uppercase; }
+    .button { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 9px; padding: 0 17px; border: 1px solid var(--line); border-radius: 7px; background: transparent; color: var(--text); font-weight: 650; transition: .2s ease; }
+    .button:hover { border-color: rgba(211,168,94,.6); background: rgba(211,168,94,.08); }
+    .button.primary { border-color: var(--accent); background: var(--accent); color: #201b12; }
+    .button.primary:hover { background: var(--accent-light); }
+    .button.small { min-height: 36px; padding: 0 12px; font-size: .82rem; }
+    .button.danger { color: #efb6a7; }
+    .icon-button { display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--text); font-size: 1.2rem; }
+    .login-shell { display: grid; min-height: 100vh; grid-template-columns: minmax(0, 1.05fr) minmax(370px, .75fr); }
+    .login-art { position: relative; display: flex; min-height: 650px; flex-direction: column; justify-content: space-between; overflow: hidden; padding: 36px 5vw 42px; background: linear-gradient(180deg,rgba(13,17,14,.04),rgba(13,17,14,.72)), radial-gradient(ellipse at 68% 28%,rgba(211,168,94,.18),transparent 25%), linear-gradient(135deg,#3b4438 0%,#1d2822 43%,#111714 100%); }
+    .login-art:before, .login-art:after { position: absolute; content: ""; pointer-events: none; }
+    .login-art:before { top: 17%; right: 12%; width: min(35vw,440px); aspect-ratio: 1; border: 1px solid rgba(234,208,154,.25); border-radius: 50%; box-shadow: 0 0 0 34px rgba(234,208,154,.035),0 0 0 78px rgba(234,208,154,.025); }
+    .login-art:after { top: 24%; right: 23%; width: min(15vw,184px); aspect-ratio: 1; border: 1px solid rgba(234,208,154,.38); border-radius: 50%; background: linear-gradient(140deg,rgba(211,168,94,.13),transparent 63%); }
+    .art-copy, .login-art > .brand, .art-footer { position: relative; z-index: 1; }
+    .art-copy { max-width: 660px; margin: auto 0; }
+    .art-copy h1 { max-width: 630px; margin: 20px 0; font: 400 clamp(3rem, 6vw, 6.4rem)/.99 var(--serif); letter-spacing: -.055em; }
+    .art-copy p { max-width: 450px; color: #c3c6b9; font-size: 1rem; line-height: 1.8; }
+    .art-footer { color: #a4a99d; font-size: .78rem; }
+    .install-app-button { position: absolute; z-index: 1; right: 5vw; bottom: 34px; }
+    .login-side { display: grid; place-items: center; padding: 40px 28px; }
+    .login-card { width: min(100%, 430px); }
+    .login-card h2 { margin: 12px 0 8px; font: 400 2.45rem var(--serif); }
+    .login-card > p { margin: 0 0 28px; color: var(--muted); font-size: .9rem; line-height: 1.65; }
+    .field { display: grid; gap: 8px; margin: 17px 0; }
+    .field label { color: #c7c9bd; font-size: .8rem; font-weight: 650; }
+    .field input, .field textarea, .field select { width: 100%; min-height: 45px; padding: 11px 13px; border: 1px solid var(--line); border-radius: 6px; outline: 0; background: #151b17; color: var(--text); }
+    .field textarea { min-height: 100px; resize: vertical; }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent); }
+    .login-form .button { width: 100%; margin-top: 9px; }
+    .role-switch { display: flex; gap: 5px; padding: 4px; border: 1px solid var(--line); border-radius: 8px; background: #151b17; }
+    .role-switch button { flex: 1; min-height: 37px; border: 0; border-radius: 5px; background: transparent; color: var(--muted); font-size: .8rem; font-weight: 650; }
+    .role-switch button.active { background: var(--panel-light); color: var(--accent-light); }
+    .login-hint { margin-top: 20px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); font-size: .76rem; line-height: 1.6; }
+    .login-hint strong { color: var(--accent-light); }
+    .error-message { min-height: 19px; margin: 7px 0 0; color: #f1a997; font-size: .8rem; }
+    .app-shell { min-height: 100vh; }
+    .topbar { position: sticky; z-index: 10; top: 0; display: flex; min-height: 72px; align-items: center; justify-content: space-between; padding: 0 clamp(20px,5vw,76px); border-bottom: 1px solid var(--line); background: rgba(17,23,20,.91); backdrop-filter: blur(16px); }
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+    .user-chip { display: flex; align-items: center; gap: 10px; color: #d8d8cd; font-size: .83rem; }
+    .user-avatar { display: grid; width: 33px; height: 33px; place-items: center; border-radius: 50%; background: #303b31; color: var(--accent-light); }
+    .main { width: min(1370px, 100%); margin: auto; padding: 36px clamp(20px,5vw,76px) 76px; }
+    .welcome { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 33px; }
+    .welcome h1 { margin: 9px 0; font: 400 clamp(2.4rem,4vw,4rem)/1.08 var(--serif); letter-spacing: -.04em; }
+    .welcome p { margin: 0; color: var(--muted); font-size: .92rem; }
+    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 34px 0 16px; }
+    .section-heading h2 { margin: 0; font: 400 1.55rem var(--serif); }
+    .room-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 13px; }
+    .room-card { position: relative; display: flex; min-height: 208px; flex-direction: column; justify-content: space-between; overflow: hidden; padding: 17px; border: 1px solid var(--line); border-radius: 8px; background: linear-gradient(145deg,rgba(65,79,63,.7),rgba(26,33,29,.92) 56%,rgba(40,36,26,.8)); text-align: left; transition: transform .2s,border-color .2s; }
+    .room-card:hover { transform: translateY(-4px); border-color: rgba(211,168,94,.58); }
+    .room-card:nth-child(3n+2) { background: linear-gradient(145deg,rgba(81,69,48,.65),rgba(26,33,29,.92) 60%); }
+    .room-card:nth-child(3n) { background: linear-gradient(145deg,rgba(45,69,68,.65),rgba(26,33,29,.92) 60%); }
+    .room-top { display: flex; align-items: flex-start; justify-content: space-between; }
+    .room-number { color: var(--accent-light); font-size: .7rem; font-weight: 750; letter-spacing: .15em; }
+    .room-figure { color: rgba(234,208,154,.44); font: 2.3rem var(--serif); }
+    .room-card h3 { margin: 0 0 5px; font: 400 1.16rem var(--serif); }
+    .room-card p { margin: 0; color: var(--muted); font-size: .75rem; }
+    .room-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 15px; color: #d1c5a7; font-size: .7rem; }
+    .visitor-banner { display: flex; align-items: center; gap: 15px; margin-top: 30px; padding: 17px 20px; border: 1px solid rgba(135,157,126,.25); border-radius: 7px; background: rgba(135,157,126,.07); }
+    .visitor-icon { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: 50%; background: #313e32; color: #c1d0b4; font-size: 1.2rem; }
+    .visitor-banner strong { font-family: var(--serif); font-size: 1rem; font-weight: 400; }
+    .visitor-banner p { margin: 4px 0 0; color: var(--muted); font-size: .78rem; }
+    .house-scene { position: relative; height: clamp(470px,57vw,700px); overflow: hidden; border: 1px solid rgba(234,208,154,.25); border-radius: 9px; background: linear-gradient(180deg,#26362e 0%,#26362e 68%,#584d3a 68%,#40382b 100%); isolation: isolate; touch-action: none; }
+    .house-scene:before { position: absolute; z-index: -1; top: 0; right: 0; left: 0; height: 68%; background: radial-gradient(ellipse at 50% 12%,rgba(228,190,126,.13),transparent 52%),repeating-linear-gradient(90deg,transparent 0 19.8%,rgba(241,214,164,.08) 19.9% 20%); content: ""; }
+    .house-heading { position: absolute; z-index: 1; top: 12px; left: 18px; color: rgba(241,222,184,.8); font-size: .67rem; font-weight: 750; letter-spacing: .16em; pointer-events: none; }
+    .house-rooms { position: absolute; inset: 44px 15px 86px; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); grid-template-rows: repeat(2,minmax(0,1fr)); gap: 9px; }
+    .house-rooms .room-card { min-height: 0; padding: 12px; border-color: rgba(234,208,154,.3); border-radius: 5px; background: linear-gradient(145deg,rgba(86,67,61,.96),rgba(40,47,38,.96) 58%,rgba(81,67,47,.96)); }
+    .house-rooms .room-card:nth-child(3n+2) { background: linear-gradient(145deg,rgba(92,70,63,.95),rgba(44,49,39,.96) 60%); }
+    .house-rooms .room-card:nth-child(3n) { background: linear-gradient(145deg,rgba(65,80,68,.96),rgba(39,49,41,.96) 60%); }
+    .house-rooms .room-card:after { position: absolute; bottom: -1px; left: calc(50% - 23px); width: 46px; height: 7px; border: 1px solid rgba(234,208,154,.7); border-bottom: 0; border-radius: 5px 5px 0 0; background: #7d6848; content: ""; }
+    .house-rooms .room-card h3 { font-size: clamp(.85rem,1.3vw,1.1rem); }
+    .house-rooms .room-card p { font-size: clamp(.65rem,.85vw,.74rem); line-height: 1.45; }
+    .house-rooms .room-figure { font-size: 1.7rem; }
+    .house-rooms .room-number { font-size: .62rem; }
+    .house-rooms .room-card-footer { font-size: .64rem; }
+    .house-scene .museum-person { top: var(--house-person-y,50%); bottom: auto; transform: translate(-50%,-50%); pointer-events: none; }
+    .house-scene .museum-person.is-sitting { transform: translate(-50%,-50%) scale(.8,.66); }
+    .house-scene .museum-person.is-jumping { animation-name: house-person-jump; }
+    @keyframes house-person-jump { 0%,100% { transform: translate(-50%,-50%); } 45% { transform: translate(-50%,calc(-50% - 85px)); } }
+    .room-prompt { position: absolute; z-index: 4; top: 12px; left: 50%; display: flex; align-items: center; gap: 10px; padding: 7px 8px 7px 13px; border: 1px solid rgba(234,208,154,.5); border-radius: 7px; background: rgba(19,25,20,.94); box-shadow: 0 7px 24px #0005; transform: translateX(-50%); }
+    .room-prompt span { max-width: 190px; overflow: hidden; font-size: .75rem; text-overflow: ellipsis; white-space: nowrap; }
+    .house-scene .scene-help { bottom: 20px; }
+    .game-stage { position: relative; height: min(76vh,820px); min-height: 500px; overflow: hidden; border: 1px solid rgba(234,208,154,.25); border-radius: 9px; background: #18211c; box-shadow: 0 24px 70px #0005; touch-action: none; }
+    .game-canvas { display: block; width: 100%; height: 100%; }
+    .game-hud { position: absolute; top: 16px; left: 16px; max-width: min(410px,65%); padding: 12px 15px; border: 1px solid rgba(234,208,154,.24); border-radius: 7px; background: rgba(15,21,17,.83); backdrop-filter: blur(7px); pointer-events: none; }
+    .game-hud strong { display: block; margin-top: 4px; font: 400 1.18rem var(--serif); }
+    .game-hud p { margin: 4px 0 0; color: #b6baae; font-size: .73rem; line-height: 1.45; }
+    .game-crosshair { position: absolute; top: 50%; left: 50%; width: 15px; height: 15px; border: 1px solid rgba(255,244,218,.65); border-radius: 50%; transform: translate(-50%,-50%); pointer-events: none; }
+    .game-crosshair:after { position: absolute; top: 50%; left: 50%; width: 3px; height: 3px; border-radius: 50%; background: #fff4da; content: ""; transform: translate(-50%,-50%); }
+    .game-interact { position: absolute; top: 55%; left: 50%; transform: translateX(-50%); }
+    .game-gallery { position: absolute; top: 16px; right: 16px; width: min(300px,32%); max-height: calc(100% - 145px); overflow-y: auto; padding: 14px; border: 1px solid rgba(234,208,154,.26); border-radius: 7px; background: rgba(15,21,17,.91); backdrop-filter: blur(9px); }
+    .game-gallery h2 { margin: 4px 0 9px; font: 400 1.25rem var(--serif); }
+    .game-gallery > p { margin: 0 0 12px; color: #c1c3b9; font-size: .75rem; line-height: 1.5; }
+    .game-gallery .media-grid { grid-template-columns: 1fr; gap: 8px; }
+    .game-gallery .media-card img, .game-gallery .media-card video { max-height: 150px; aspect-ratio: 16/10; }
+    .game-gallery .media-card-copy { padding: 9px; }
+    .game-gallery .media-card-copy h3 { font-size: .97rem; }
+    .game-gallery .media-card-copy p { font-size: .72rem; }
+    .game-gallery .empty-state { padding: 16px 9px; font-size: .75rem; }
+    .game-help { position: absolute; top: 17px; left: 50%; padding: 7px 11px; border-radius: 5px; background: rgba(15,21,17,.7); color: rgba(255,255,255,.76); font-size: .68rem; transform: translateX(-50%); pointer-events: none; white-space: nowrap; }
+    .game-stage .scene-controls { z-index: 5; bottom: 16px; }
+    .game-stage .joystick { background: rgba(16,21,17,.78); }
+    .game-stage .action-circle { width: 62px; height: 62px; }
+    .game-stage .action-control.jump .action-circle { width: 73px; height: 73px; }
+    .game-room-badge { margin-top: 7px; color: var(--accent-light); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; }
+    .game-footnote { margin: 12px 2px 0; color: var(--muted); font-size: .75rem; line-height: 1.6; }
+    .room-view { overflow: hidden; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); }
+    .room-hero { position: relative; display: flex; min-height: 235px; align-items: flex-end; overflow: hidden; padding: clamp(24px,5vw,54px); background: radial-gradient(ellipse at 75% 30%,rgba(211,168,94,.21),transparent 28%),linear-gradient(115deg,#344237,#1c2821 56%,#25251c); }
+    .room-hero:after { position: absolute; top: -90px; right: 8%; width: 320px; height: 320px; border: 1px solid rgba(234,208,154,.16); border-radius: 50%; box-shadow: 0 0 0 35px rgba(234,208,154,.035),0 0 0 75px rgba(234,208,154,.025); content: ""; }
+    .room-hero-copy { position: relative; z-index: 1; }
+    .room-hero h1 { margin: 9px 0; font: 400 clamp(2.5rem,5vw,4.4rem)/1.02 var(--serif); letter-spacing: -.04em; }
+    .room-hero p { max-width: 600px; margin: 0; color: #c0c5b9; line-height: 1.7; }
+    .walk-scene { position: relative; height: clamp(340px,43vw,455px); overflow: hidden; border-bottom: 1px solid var(--line); background: linear-gradient(180deg,#26362e 0%,#334136 67%,#685b45 67%,#4a4031 100%); isolation: isolate; touch-action: none; }
+    .walk-scene:before { position: absolute; z-index: -1; top: 0; right: 0; left: 0; height: 68%; background: radial-gradient(ellipse at 50% 18%,rgba(228,190,126,.19),transparent 42%),linear-gradient(90deg,transparent 49.7%,rgba(229,200,147,.14) 50%,transparent 50.3%),linear-gradient(180deg,rgba(18,25,20,.14),transparent); content: ""; }
+    .gallery-frame { position: absolute; top: 13%; display: grid; width: clamp(64px,11vw,120px); aspect-ratio: .78; place-items: center; border: 7px solid #776044; outline: 1px solid rgba(241,214,164,.35); background: radial-gradient(circle at 50% 38%,rgba(218,161,149,.75) 0 8%,transparent 9%),radial-gradient(ellipse at 50% 67%,rgba(171,129,117,.75) 0 22%,transparent 23%),linear-gradient(140deg,#514535,#29372e); box-shadow: 0 8px 25px #0e120f66; }
+    .gallery-frame:after { color: rgba(248,216,185,.75); content: "♡"; font: 1.45rem var(--serif); }
+    .gallery-frame.one { left: 14%; transform: rotate(-2deg); }
+    .gallery-frame.two { right: 14%; transform: rotate(2deg); }
+    .scene-caption { position: absolute; top: 7%; left: 50%; color: rgba(241,222,184,.8); font: italic 1rem var(--serif); letter-spacing: .06em; transform: translateX(-50%); }
+    .scene-floor-line { position: absolute; right: 0; bottom: 31%; left: 0; height: 1px; background: rgba(238,217,178,.18); }
+    .museum-person { position: absolute; z-index: 2; bottom: var(--person-bottom,28px); left: var(--person-x,50%); display: grid; width: 52px; height: 104px; justify-items: center; color: #f0c3a0; transform: translateX(-50%); transform-origin: center bottom; transition: transform .18s ease; }
+    .museum-person svg { width: 52px; height: 100px; overflow: visible; filter: drop-shadow(0 5px 5px #17140e70); }
+    .museum-person.is-moving svg { animation: person-bob .19s ease-in-out infinite alternate; }
+    .museum-person.is-sitting { transform: translateX(-50%) scale(.8,.66); }
+    .museum-person.is-jumping { animation: person-jump .58s cubic-bezier(.27,.75,.45,1); }
+    .person-name { position: absolute; top: -19px; padding: 2px 7px; border: 1px solid rgba(240,238,228,.22); border-radius: 10px; background: #18201bd9; color: #f0eee4; font-size: .62rem; white-space: nowrap; }
+    .scene-controls { position: absolute; z-index: 3; right: 0; bottom: 13px; left: 0; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 16px; pointer-events: none; }
+    .joystick { position: relative; width: 92px; height: 92px; flex: 0 0 92px; border: 1px solid rgba(240,238,228,.24); border-radius: 50%; background: rgba(16,21,17,.67); box-shadow: inset 0 0 0 8px rgba(240,238,228,.035); touch-action: none; pointer-events: auto; }
+    .joystick:before, .joystick:after { position: absolute; top: 50%; left: 50%; color: rgba(240,238,228,.46); font-size: .66rem; transform: translate(-50%,-50%); }
+    .joystick:before { content: "↕"; }
+    .joystick:after { content: "↔"; }
+    .joystick-knob { position: absolute; top: 50%; left: 50%; display: grid; width: 39px; height: 39px; place-items: center; border: 1px solid rgba(234,208,154,.75); border-radius: 50%; background: linear-gradient(145deg,#d9ba80,#917145); box-shadow: 0 3px 10px #0006; color: #261e12; font-size: .75rem; transform: translate(-50%,-50%); }
+    .action-buttons { display: flex; align-items: flex-end; gap: 12px; pointer-events: auto; }
+    .action-control { display: grid; justify-items: center; gap: 5px; border: 0; background: transparent; color: #f0eee4; font-size: .64rem; }
+    .action-circle { display: grid; width: 57px; height: 57px; place-items: center; border: 1px solid rgba(234,208,154,.48); border-radius: 50%; background: rgba(24,30,25,.86); box-shadow: 0 4px 14px #0004; color: var(--accent-light); font-size: 1.3rem; transition: .15s ease; }
+    .action-control:hover .action-circle, .action-control[aria-pressed="true"] .action-circle { border-color: var(--accent-light); background: #725d39; color: #fff3d4; transform: translateY(-2px); }
+    .action-control.jump .action-circle { width: 68px; height: 68px; background: rgba(129,91,67,.94); font-size: 1.55rem; }
+    .scene-help { position: absolute; z-index: 1; bottom: 25px; left: 50%; color: rgba(255,255,255,.62); font-size: .7rem; text-align: center; transform: translateX(-50%); white-space: nowrap; }
+    @keyframes person-bob { to { transform: translateY(-3px); } }
+    @keyframes person-jump { 0%,100% { transform: translateX(-50%) translateY(0); } 45% { transform: translateX(-50%) translateY(-105px); } }
+    .room-content { padding: clamp(20px,4vw,40px); }
+    .room-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; }
+    .room-controls p { margin: 0; color: var(--muted); font-size: .83rem; }
+    .control-group { display: flex; gap: 8px; }
+    .media-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(240px,1fr)); gap: 16px; }
+    .media-card { overflow: hidden; border: 1px solid var(--line); border-radius: 7px; background: #151b17; }
+    .media-card img, .media-card video { display: block; width: 100%; max-height: 360px; aspect-ratio: 4/3; background: #0e120f; object-fit: contain; }
+    .media-card-copy { padding: 14px; }
+    .media-card-copy h3 { margin: 0 0 6px; font: 400 1.1rem var(--serif); }
+    .media-card-copy p { margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.6; white-space: pre-wrap; }
+    .empty-state { padding: 40px 18px; border: 1px dashed var(--line); border-radius: 7px; color: var(--muted); text-align: center; line-height: 1.7; }
+    .admin-layout { display: grid; grid-template-columns: minmax(0,1.05fr) minmax(280px,.8fr); gap: 20px; }
+    .admin-panel { padding: 22px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+    .admin-panel h2 { margin: 0 0 7px; font: 400 1.45rem var(--serif); }
+    .admin-panel > p { margin: 0 0 20px; color: var(--muted); font-size: .82rem; line-height: 1.6; }
+    .upload-preview { min-height: 110px; display: grid; place-items: center; padding: 15px; border: 1px dashed rgba(211,168,94,.35); border-radius: 6px; color: var(--muted); font-size: .8rem; text-align: center; }
+    .upload-preview img, .upload-preview video { max-width: 100%; max-height: 260px; }
+    .admin-subsection { margin-top: 25px; padding-top: 22px; border-top: 1px solid var(--line); }
+    .admin-subsection h3 { margin: 0 0 6px; font: 400 1.2rem var(--serif); }
+    .account-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: .82rem; }
+    .toast { position: fixed; z-index: 20; right: 20px; bottom: 20px; max-width: min(420px,calc(100vw - 40px)); padding: 13px 17px; border: 1px solid rgba(211,168,94,.4); border-radius: 7px; background: #242d26; box-shadow: 0 10px 40px #0005; color: var(--text); font-size: .86rem; }
+    .footer-note { margin-top: 35px; color: #858b7f; font-size: .72rem; line-height: 1.65; }
+    @media (max-width: 980px) { .room-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } .login-shell { grid-template-columns: minmax(0,1fr) minmax(340px,.9fr); } }
+    @media (max-width: 700px) { .login-shell { grid-template-columns: 1fr; } .login-art { min-height: 320px; padding: 23px 24px; } .login-art:before { top: 12%; right: 5%; width: 230px; } .login-art:after { top: 23%; right: 17%; width: 115px; } .art-copy { margin: 40px 0 0; } .art-copy h1 { max-width: 400px; margin: 12px 0; font-size: 3.2rem; } .art-copy p { max-width: 390px; margin-bottom: 0; font-size: .88rem; } .art-footer { margin-top: 21px; } .install-app-button { right: 24px; bottom: 17px; } .login-side { padding: 33px 24px 44px; } .room-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .welcome { align-items: flex-start; flex-direction: column; } .admin-layout { grid-template-columns: 1fr; } .topbar { padding-right: 18px; padding-left: 18px; } .user-chip span:last-child { display: none; } }
+    @media (max-width: 700px) { .game-stage { height: 68vh; min-height: 510px; } .game-hud { top: 10px; left: 10px; max-width: calc(100% - 20px); padding: 9px 10px; } .game-hud strong { font-size: 1rem; } .game-hud p { font-size: .66rem; } .game-help { top: auto; bottom: 105px; left: 50%; width: 43%; white-space: normal; text-align: center; font-size: .61rem; } .game-gallery { top: 112px; right: 10px; left: 10px; width: auto; max-height: 29%; padding: 9px; } .game-gallery h2 { font-size: 1rem; } .game-gallery > p { font-size: .67rem; } .game-gallery .media-card img, .game-gallery .media-card video { max-height: 100px; } .game-stage .scene-controls { bottom: 12px; padding: 0 11px; } .game-stage .joystick { width: 78px; height: 78px; flex-basis: 78px; } .game-stage .joystick-knob { width: 34px; height: 34px; } .game-stage .action-buttons { gap: 5px; } .game-stage .action-circle { width: 49px; height: 49px; } .game-stage .action-control.jump .action-circle { width: 58px; height: 58px; } .game-interact { top: 62%; } .house-scene { height: 800px; } .house-rooms { inset: 43px 10px 91px; grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-rows: repeat(5,minmax(0,1fr)); gap: 7px; } .house-rooms .room-card { padding: 10px; } .house-rooms .room-card h3 { font-size: .9rem; } .house-rooms .room-card p { font-size: .68rem; } .house-rooms .room-card-footer { margin-top: 8px; } .room-prompt { top: 7px; } }
+    @media (max-width: 480px) { .walk-scene { height: 350px; } .gallery-frame.one { left: 8%; } .gallery-frame.two { right: 8%; } .scene-help { bottom: 27px; width: 46%; white-space: normal; font-size: .62rem; } .joystick { width: 78px; height: 78px; flex-basis: 78px; } .joystick-knob { width: 34px; height: 34px; } .action-buttons { gap: 5px; } .action-circle { width: 49px; height: 49px; } .action-control.jump .action-circle { width: 58px; height: 58px; } .scene-controls { padding: 0 11px; } .house-scene { height: 790px; } .house-scene .scene-help { bottom: 24px; width: 38%; } .house-rooms .room-card h3 { font-size: .83rem; } .house-rooms .room-card p { font-size: .64rem; } .house-rooms .room-figure { font-size: 1.35rem; } }
+    @media (max-width: 390px) { .room-grid { grid-template-columns: 1fr; } .room-card { min-height: 165px; } .brand-sub { letter-spacing: .09em; } .topbar-right { gap: 9px; } }
+  </style>
+</head>
+<body>
+  <section id="loginScreen" class="login-shell">
+    <div class="login-art">
+      <div class="brand">
+        <div class="brand-mark">O</div>
+        <div><div class="brand-name">Ikki qalb</div><div class="brand-sub">Sevishganlar muzeyi</div></div>
+      </div>
+      <div class="art-copy">
+        <div class="eyebrow">Muhabbat olamiga qadam</div>
+        <h1>Har bir xonada bir sevgi hikoyasi.</h1>
+        <p>Sevishganlar muzeyiga xush kelibsiz. Birga o‘tgan lahzalar, yoqimli so‘zlar va qalbga yaqin xotiralar olamiga sayr qiling.</p>
+      </div>
+      <div class="art-footer">Tinch sayr qiling. Muhabbat hikoyalari sizni kutmoqda.</div>
+      <button id="installAppButton" class="button small install-app-button hidden" type="button">Ilovani o‘rnatish</button>
+    </div>
+    <div class="login-side">
+      <div class="login-card">
+        <div class="eyebrow">Muzeyga kirish</div>
+        <h2>Xush kelibsiz</h2>
+        <p>Muzeyni tomosha qilish uchun hisobingiz bilan kiring.</p>
+        <div class="role-switch" aria-label="Kirish turi">
+          <button type="button" class="active" data-role="visitor">Tashrif buyuruvchi</button>
+          <button type="button" data-role="admin">Administrator</button>
+        </div>
+        <form id="loginForm" class="login-form">
+          <div class="field"><label for="loginName">Login</label><input id="loginName" name="username" autocomplete="username" required placeholder="Loginingizni kiriting"></div>
+          <div class="field"><label for="loginPassword">Parol</label><input id="loginPassword" name="password" type="password" autocomplete="current-password" required placeholder="Parolingizni kiriting"></div>
+          <p id="loginError" class="error-message" role="alert"></p>
+          <button class="button primary" type="submit">Muzeyga kirish <span aria-hidden="true">→</span></button>
+        </form>
+        <div class="login-hint"><strong>Tashrif buyuruvchimisiz?</strong> Login va parolni muzey administratoridan oling.<br><strong>Admin demo:</strong> admin / muzey2026</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="appScreen" class="app-shell hidden">
+    <header class="topbar">
+      <div class="brand"><div class="brand-mark">♡</div><div><div class="brand-name">Ikki qalb</div><div class="brand-sub">Sevishganlar muzeyi</div></div></div>
+      <div class="topbar-right"><button id="homeButton" class="button small hidden" type="button">← Uyga</button><div class="user-chip"><div class="user-avatar">♙</div><span id="currentUser"></span></div><button id="logoutButton" class="button small" type="button">Chiqish</button></div>
+    </header>
+    <main id="mainContent" class="main"></main>
+  </section>
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      "use strict";
+      const ADMIN = { username: "admin", password: "muzey2026", role: "admin", name: "Administrator" };
+      const ROOMS = [
+        { name: "Birinchi uchrashuv", description: "Nigohlar to‘qnashgan, yuraklar hayajonga to‘lgan lahza." },
+        { name: "Ilk suhbat", description: "Unutilmas tanishuv va soatlab davom etgan samimiy suhbatlar." },
+        { name: "Sevgi maktublari", description: "Qog‘ozga tushgan eng iliq so‘zlar va kichik e’tiroflar." },
+        { name: "Qadrli xotiralar", description: "Birga kulgan, quvongan va eslab yuradigan lahzalar." },
+        { name: "Birga sayohat", description: "Ikki qalb kashf etgan manzillar va yo‘l xotiralari." },
+        { name: "Va’dalar", description: "Bir-biringizga aytilgan samimiy so‘zlar va ezgu niyatlar." },
+        { name: "Bizning qo‘shig‘imiz", description: "Sevgingizni eslatadigan kuylar va ohanglar." },
+        { name: "Romantik lahzalar", description: "Gullar, tabassumlar va kutilmagan yoqimli sovg‘alar." },
+        { name: "Birgalikdagi orzular", description: "Birga qurilgan rejalar va kelajak haqidagi tilaklar." },
+        { name: "Abadiy muhabbat", description: "Har kuni yangilanadigan mehr va birga yoziladigan hikoya." }
+      ];
+      const DB_NAME = "oston-digital-museum";
+      const DB_VERSION = 1;
+      const $ = (selector, root = document) => root.querySelector(selector);
+      const loginScreen = $("#loginScreen");
+      const appScreen = $("#appScreen");
+      const mainContent = $("#mainContent");
+      const homeButton = $("#homeButton");
+      let loginRole = "visitor";
+      let currentUser = null;
+      let activeRoom = null;
+      let toastTimer;
+      let previewUrl = null;
+      let databasePromise;
+      let gamePlayer = { x: 15, z: 10, yaw: 0, sitting: false, jumpUntil: 0, walkPhase: 0 };
+      let gameCanvas = null;
+      let gameResizeHandler = null;
+      let displayedGalleryRoom = null;
+      let gameMediaUrls = [];
+      let nearbyDoor = null;
+      let joystickPointer = null;
+      let joystickVector = { x: 0, y: 0 };
+      let movementKeys = new Set();
+      let roomAnimationFrame = null;
+      let roomFrameTime = 0;
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        })[char]);
+      }
+
+      function openDatabase() {
+        if (!databasePromise) {
+          databasePromise = new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onupgradeneeded = () => {
+              const db = request.result;
+              if (!db.objectStoreNames.contains("media")) {
+                const store = db.createObjectStore("media", { keyPath: "id", autoIncrement: true });
+                store.createIndex("room", "room", { unique: false });
+              }
+            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(new Error("Brauzer xotirasi ochilmadi."));
+          });
+        }
+        return databasePromise;
+      }
+
+      async function mediaRequest(mode, operation) {
+        const db = await openDatabase();
+        return new Promise((resolve, reject) => {
+          const transaction = db.transaction("media", mode);
+          const request = operation(transaction.objectStore("media"));
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(new Error("Media bilan ishlashda xatolik yuz berdi."));
+          transaction.onabort = () => reject(new Error("Brauzer xotirasiga yozib bo‘lmadi."));
+        });
+      }
+
+      async function getRoomMedia(room) {
+        const records = await mediaRequest("readonly", (store) => store.index("room").getAll(room));
+        return records.sort((a, b) => b.createdAt - a.createdAt);
+      }
+
+      async function showToast(message) {
+        const toast = $("#toast");
+        toast.textContent = message;
+        toast.classList.remove("hidden");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.add("hidden"), 3600);
+      }
+
+      function setLoginRole(role) {
+        loginRole = role;
+        document.querySelectorAll(".role-switch button").forEach((button) => {
+          button.classList.toggle("active", button.dataset.role === role);
+        });
+        $("#loginError").textContent = "";
+      }
+      document.querySelectorAll(".role-switch button").forEach((button) => {
+        button.addEventListener("click", () => setLoginRole(button.dataset.role));
+      });
+
+      function showApp(user) {
+        currentUser = user;
+        activeRoom = null;
+        $("#currentUser").textContent = user.name || user.username;
+        loginScreen.classList.add("hidden");
+        appScreen.classList.remove("hidden");
+        homeButton.classList.add("hidden");
+        if (user.role === "admin") renderAdmin();
+        else renderHome();
+      }
+
+      $("#loginForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const username = $("#loginName").value.trim();
+        const password = $("#loginPassword").value;
+        const error = $("#loginError");
+        if (loginRole === "admin") {
+          if (username !== ADMIN.username || password !== ADMIN.password) {
+            error.textContent = "Admin logini yoki paroli noto‘g‘ri.";
+            return;
+          }
+          showApp(ADMIN);
+          return;
+        }
+        let accounts;
+        try {
+          accounts = JSON.parse(localStorage.getItem("oston-accounts") || "[]");
+        } catch {
+          error.textContent = "Hisoblar ro‘yxatini o‘qib bo‘lmadi. Brauzer xotirasini tekshiring.";
+          return;
+        }
+        const account = accounts.find((item) => item.username.toLowerCase() === username.toLowerCase() && item.password === password);
+        if (!account) {
+          error.textContent = "Login yoki parol noto‘g‘ri. Hisobni administratoringizdan so‘rang.";
+          return;
+        }
+        showApp(account);
+      });
+
+      $("#logoutButton").addEventListener("click", () => {
+        stopRoomControls();
+        currentUser = null;
+        activeRoom = null;
+        appScreen.classList.add("hidden");
+        loginScreen.classList.remove("hidden");
+        $("#loginForm").reset();
+        $("#loginError").textContent = "";
+        setLoginRole("visitor");
+      });
+      homeButton.addEventListener("click", () => {
+        stopRoomControls();
+        activeRoom = null;
+        homeButton.classList.add("hidden");
+        if (currentUser?.role === "admin") renderAdmin();
+        else renderHome();
+      });
+
+      function renderHome() {
+        if (currentUser?.role === "admin") {
+          homeButton.textContent = "← Admin paneli";
+          homeButton.classList.remove("hidden");
+        } else {
+          homeButton.classList.add("hidden");
+        }
+        activeRoom = null;
+        gamePlayer = { x: 15, z: 10, yaw: 0, sitting: false, jumpUntil: 0, walkPhase: 0 };
+        mainContent.innerHTML = `<section class="game-stage" id="gameStage" aria-label="Sevishganlar muzeyining 3D uyi">
+          <canvas id="gameCanvas" class="game-canvas" aria-label="Odamchani joystik bilan boshqarib, o‘n xonali uy ichida sayr qiling"></canvas>
+          <div class="game-hud"><div class="eyebrow">IKKI QALB · 3D SEVGI UYI</div><strong id="gameRoomName">Uy yo‘lagi</strong><p id="gameRoomHint">Uy ichida erkin yuring va xonalar bo‘ylab sayr qiling.</p><div id="gameRoomBadge" class="game-room-badge">10 xona · bitta uy</div></div>
+          <div class="game-help">W / ↑ — yurish · A,D / ←,→ — burilish · E — xonaga kirish</div>
+          <div class="game-crosshair" aria-hidden="true"></div>
+          <button id="interactButton" class="button primary game-interact hidden" type="button"></button>
+          <section id="gameGallery" class="game-gallery hidden" aria-live="polite"><div class="eyebrow">UY ICHIDAGI KO‘RGAZMA</div><h2 id="galleryTitle"></h2><p id="galleryDescription"></p><div id="gameMedia" class="media-grid"></div></section>
+          <div class="scene-controls"><div id="joystick" class="joystick" role="application" aria-label="Odamchani burish va oldinga yurgizish uchun joystick"><div id="joystickKnob" class="joystick-knob">●</div></div><div class="action-buttons"><button id="sitButton" class="action-control" type="button" aria-pressed="false"><span class="action-circle" aria-hidden="true">⌄</span><span>O‘tirish</span></button><button id="jumpButton" class="action-control jump" type="button"><span class="action-circle" aria-hidden="true">↑</span><span>Sakrash</span></button></div></div><span id="characterStatus" class="sr-only" aria-live="polite"></span>
+        </section><p class="game-footnote">Joystickni yuqoriga itaring — oldinga yuring; chap/o‘ngga itaring — buriling. Kompyuterda W/A/S/D yoki strelkalardan foydalaning. E tugmasi yoki ekrandagi tugma bilan eshikdan o‘ting.</p>`;
+        startGame();
+      }
+
+      function stopRoomControls() {
+        if (roomAnimationFrame !== null) cancelAnimationFrame(roomAnimationFrame);
+        roomAnimationFrame = null;
+        roomFrameTime = 0;
+        joystickPointer = null;
+        joystickVector = { x: 0, y: 0 };
+        movementKeys.clear();
+        if (gameResizeHandler) window.removeEventListener("resize", gameResizeHandler);
+        gameResizeHandler = null;
+        gameCanvas = null;
+        displayedGalleryRoom = null;
+        gameMediaUrls.forEach((url) => URL.revokeObjectURL(url));
+        gameMediaUrls = [];
+      }
+
+      function startGame() {
+        gameCanvas = $("#gameCanvas");
+        const stage = $("#gameStage");
+        const joystick = $("#joystick");
+        const knob = $("#joystickKnob");
+        if (!gameCanvas || !stage || !joystick || !knob) return;
+        const syncCanvasSize = () => {
+          const bounds = stage.getBoundingClientRect();
+          const ratio = Math.min(window.devicePixelRatio || 1, 2);
+          gameCanvas.width = Math.round(bounds.width * ratio);
+          gameCanvas.height = Math.round(bounds.height * ratio);
+          gameCanvas.style.width = `${bounds.width}px`;
+          gameCanvas.style.height = `${bounds.height}px`;
+        };
+        gameResizeHandler = syncCanvasSize;
+        window.addEventListener("resize", syncCanvasSize);
+        syncCanvasSize();
+
+        const moveJoystick = (event) => {
+          if (joystickPointer !== event.pointerId) return;
+          const bounds = joystick.getBoundingClientRect();
+          const dx = event.clientX - (bounds.left + bounds.width / 2);
+          const dy = event.clientY - (bounds.top + bounds.height / 2);
+          const maxDistance = bounds.width * .32;
+          const distance = Math.min(maxDistance, Math.hypot(dx, dy));
+          const angle = Math.atan2(dy, dx);
+          const offsetX = Math.cos(angle) * distance;
+          const offsetY = Math.sin(angle) * distance;
+          joystickVector = { x: offsetX / maxDistance, y: offsetY / maxDistance };
+          knob.style.transform = `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`;
+        };
+        const releaseJoystick = (event) => {
+          if (joystickPointer !== event.pointerId) return;
+          joystickPointer = null;
+          joystickVector = { x: 0, y: 0 };
+          knob.style.transform = "translate(-50%, -50%)";
+        };
+        joystick.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          joystickPointer = event.pointerId;
+          joystick.setPointerCapture(event.pointerId);
+          moveJoystick(event);
+        });
+        joystick.addEventListener("pointermove", moveJoystick);
+        joystick.addEventListener("pointerup", releaseJoystick);
+        joystick.addEventListener("pointercancel", releaseJoystick);
+        $("#sitButton").addEventListener("click", () => {
+          gamePlayer.sitting = !gamePlayer.sitting;
+          $("#sitButton").setAttribute("aria-pressed", String(gamePlayer.sitting));
+          $("#characterStatus").textContent = gamePlayer.sitting ? "Odamcha o‘tirdi." : "Odamcha turdi.";
+        });
+        $("#jumpButton").addEventListener("click", () => {
+          gamePlayer.jumpUntil = performance.now() + 720;
+          $("#characterStatus").textContent = "Odamcha sakradi!";
+        });
+        $("#interactButton").addEventListener("click", enterNearbyRoom);
+        roomFrameTime = 0;
+        roomAnimationFrame = requestAnimationFrame(gameFrame);
+      }
+
+      document.addEventListener("keydown", (event) => {
+        if (appScreen.classList.contains("hidden") || !gameCanvas) return;
+        if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " "].includes(event.key)) event.preventDefault();
+        if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "a", "d", "w", "s"].includes(event.key)) movementKeys.add(event.key.toLowerCase().startsWith("arrow") ? event.key : event.key.toLowerCase());
+        if (event.code === "KeyE" && !event.repeat) enterNearbyRoom();
+        if (event.code === "Space" && !event.repeat) $("#jumpButton")?.click();
+      });
+      document.addEventListener("keyup", (event) => movementKeys.delete(event.key.startsWith("Arrow") ? event.key : event.key.toLowerCase()));
+
+      const HOUSE = { width: 30, depth: 20, hallTop: 8, hallBottom: 12, roomWidth: 6, wallHeight: 3.1 };
+      const ROOM_FLOORS = ["#806b56", "#716452", "#705a54", "#796c58", "#5e6c61", "#7d6757", "#626b5b", "#805d58", "#6a5e60", "#736550"];
+
+      function vectorLength(vector) {
+        return Math.hypot(vector.x, vector.y, vector.z);
+      }
+
+      function normalizeVector(vector) {
+        const length = vectorLength(vector) || 1;
+        return { x: vector.x / length, y: vector.y / length, z: vector.z / length };
+      }
+
+      function dotVector(a, b) {
+        return a.x * b.x + a.y * b.y + a.z * b.z;
+      }
+
+      function crossVector(a, b) {
+        return { x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x };
+      }
+
+      function createProjector(width, height) {
+        const forward = { x: Math.sin(gamePlayer.yaw), y: 0, z: -Math.cos(gamePlayer.yaw) };
+        const camera = {
+          x: gamePlayer.x - forward.x * 4.3,
+          y: 3.15,
+          z: gamePlayer.z - forward.z * 4.3
+        };
+        const target = { x: gamePlayer.x + forward.x * .4, y: 1.05, z: gamePlayer.z + forward.z * .4 };
+        const viewDirection = normalizeVector({ x: target.x - camera.x, y: target.y - camera.y, z: target.z - camera.z });
+        const right = normalizeVector(crossVector(viewDirection, { x: 0, y: 1, z: 0 }));
+        const up = crossVector(right, viewDirection);
+        const focalLength = height * .9;
+        return (point) => {
+          const relative = { x: point.x - camera.x, y: point.y - camera.y, z: point.z - camera.z };
+          const depth = dotVector(relative, viewDirection);
+          if (depth < .12) return null;
+          const scale = focalLength / depth;
+          return {
+            x: width / 2 + dotVector(relative, right) * scale,
+            y: height * .49 - dotVector(relative, up) * scale,
+            depth,
+            scale
+          };
+        };
+      }
+
+      function addGamePolygon(primitives, project, points, color, stroke = null) {
+        const projected = points.map(project);
+        if (projected.some((point) => point === null)) return;
+        const depth = projected.reduce((sum, point) => sum + point.depth, 0) / projected.length;
+        primitives.push({
+          depth,
+          draw(context) {
+            context.beginPath();
+            context.moveTo(projected[0].x, projected[0].y);
+            projected.slice(1).forEach((point) => context.lineTo(point.x, point.y));
+            context.closePath();
+            context.fillStyle = color;
+            context.fill();
+            if (stroke) {
+              context.strokeStyle = stroke;
+              context.lineWidth = 1;
+              context.stroke();
+            }
+          }
+        });
+      }
+
+      function addGameText(primitives, project, point, text, color, size) {
+        const projected = project(point);
+        if (!projected) return;
+        primitives.push({
+          depth: projected.depth,
+          draw(context) {
+            context.fillStyle = color;
+            context.font = `700 ${Math.max(9, size * projected.scale)}px Georgia, serif`;
+            context.textAlign = "center";
+            context.fillText(text, projected.x, projected.y);
+          }
+        });
+      }
+
+      function addGameCircle(primitives, project, point, radius, color) {
+        const projected = project(point);
+        if (!projected) return;
+        primitives.push({
+          depth: projected.depth,
+          draw(context) {
+            context.beginPath();
+            context.ellipse(projected.x, projected.y, radius * projected.scale, radius * projected.scale, 0, 0, Math.PI * 2);
+            context.fillStyle = color;
+            context.fill();
+          }
+        });
+      }
+
+      function addWallAtZ(primitives, project, left, right, z, color = "#8b806d") {
+        addGamePolygon(primitives, project, [
+          { x: left, y: 0, z }, { x: right, y: 0, z },
+          { x: right, y: HOUSE.wallHeight, z }, { x: left, y: HOUSE.wallHeight, z }
+        ], color, "rgba(242,218,176,.12)");
+        addGamePolygon(primitives, project, [
+          { x: left, y: HOUSE.wallHeight, z }, { x: right, y: HOUSE.wallHeight, z },
+          { x: right, y: HOUSE.wallHeight, z: z + .08 }, { x: left, y: HOUSE.wallHeight, z: z + .08 }
+        ], "#b19c7a");
+      }
+
+      function addWallAtX(primitives, project, x, near, far, color = "#756d60") {
+        addGamePolygon(primitives, project, [
+          { x, y: 0, z: near }, { x, y: 0, z: far },
+          { x, y: HOUSE.wallHeight, z: far }, { x, y: HOUSE.wallHeight, z: near }
+        ], color, "rgba(242,218,176,.11)");
+      }
+
+      function addBox(primitives, project, cx, cy, cz, width, height, depth, color) {
+        const x1 = cx - width / 2;
+        const x2 = cx + width / 2;
+        const y1 = cy - height / 2;
+        const y2 = cy + height / 2;
+        const z1 = cz - depth / 2;
+        const z2 = cz + depth / 2;
+        addGamePolygon(primitives, project, [
+          { x: x1, y: y2, z: z1 }, { x: x2, y: y2, z: z1 },
+          { x: x2, y: y2, z: z2 }, { x: x1, y: y2, z: z2 }
+        ], color);
+        addGamePolygon(primitives, project, [
+          { x: x1, y: y1, z: z1 }, { x: x2, y: y1, z: z1 },
+          { x: x2, y: y2, z: z1 }, { x: x1, y: y2, z: z1 }
+        ], "#4c4038");
+        addGamePolygon(primitives, project, [
+          { x: x1, y: y1, z: z2 }, { x: x2, y: y1, z: z2 },
+          { x: x2, y: y2, z: z2 }, { x: x1, y: y2, z: z2 }
+        ], "#9b8064");
+      }
+
+      function addRoomArtwork(primitives, project, index) {
+        const col = index % 5;
+        const upper = index < 5;
+        const centerX = col * HOUSE.roomWidth + HOUSE.roomWidth / 2;
+        const wallZ = upper ? .09 : HOUSE.depth - .09;
+        const toward = upper ? 1 : -1;
+        const frame = [
+          { x: centerX - .72, y: .9, z: wallZ }, { x: centerX + .72, y: .9, z: wallZ },
+          { x: centerX + .72, y: 2.35, z: wallZ }, { x: centerX - .72, y: 2.35, z: wallZ }
+        ];
+        addGamePolygon(primitives, project, frame, "#bd9b68", "rgba(247,220,171,.6)");
+        addGamePolygon(primitives, project, [
+          { x: centerX - .55, y: 1.05, z: wallZ + toward * .012 },
+          { x: centerX + .55, y: 1.05, z: wallZ + toward * .012 },
+          { x: centerX + .55, y: 2.2, z: wallZ + toward * .012 },
+          { x: centerX - .55, y: 2.2, z: wallZ + toward * .012 }
+        ], "#493c36");
+        addGameText(primitives, project, { x: centerX, y: 1.78, z: wallZ + toward * .025 }, "♡", "#e7b6a2", .46);
+        const centerZ = upper ? 2.2 : 17.8;
+        addBox(primitives, project, centerX, .36, centerZ, .86, .68, .68, "#926a5e");
+        addBox(primitives, project, centerX, .73, centerZ, .96, .1, .76, "#c2a478");
+        addBox(primitives, project, centerX - 1.65, .28, upper ? 4.6 : 15.4, 1.1, .52, .9, ROOM_FLOORS[index]);
+      }
+
+      function addWorldGeometry(primitives, project) {
+        const colors = ROOM_FLOORS;
+        for (let index = 0; index < 10; index += 1) {
+          const col = index % 5;
+          const upper = index < 5;
+          const x1 = col * HOUSE.roomWidth;
+          const x2 = x1 + HOUSE.roomWidth;
+          const z1 = upper ? 0 : HOUSE.hallBottom;
+          const z2 = upper ? HOUSE.hallTop : HOUSE.depth;
+          addGamePolygon(primitives, project, [
+            { x: x1, y: 0, z: z1 }, { x: x2, y: 0, z: z1 },
+            { x: x2, y: 0, z: z2 }, { x: x1, y: 0, z: z2 }
+          ], colors[index]);
+          addRoomArtwork(primitives, project, index);
+        }
+        addGamePolygon(primitives, project, [
+          { x: 0, y: .008, z: HOUSE.hallTop }, { x: HOUSE.width, y: .008, z: HOUSE.hallTop },
+          { x: HOUSE.width, y: .008, z: HOUSE.hallBottom }, { x: 0, y: .008, z: HOUSE.hallBottom }
+        ], "#806f55", "rgba(239,216,180,.2)");
+
+        addWallAtZ(primitives, project, 0, HOUSE.width, 0, "#63594e");
+        addWallAtZ(primitives, project, 0, HOUSE.width, HOUSE.depth, "#63594e");
+        addWallAtX(primitives, project, 0, 0, HOUSE.depth, "#5a534a");
+        addWallAtX(primitives, project, HOUSE.width, 0, HOUSE.depth, "#5a534a");
+
+        for (let partition = 1; partition < 5; partition += 1) {
+          const x = partition * HOUSE.roomWidth;
+          addWallAtX(primitives, project, x, 0, HOUSE.hallTop, "#837663");
+          addWallAtX(primitives, project, x, HOUSE.hallBottom, HOUSE.depth, "#837663");
+        }
+        for (let room = 0; room < 5; room += 1) {
+          const left = room * HOUSE.roomWidth;
+          const right = left + HOUSE.roomWidth;
+          const center = left + HOUSE.roomWidth / 2;
+          addWallAtZ(primitives, project, left, center - 1, HOUSE.hallTop, "#94836e");
+          addWallAtZ(primitives, project, center + 1, right, HOUSE.hallTop, "#94836e");
+          addWallAtZ(primitives, project, left, center - 1, HOUSE.hallBottom, "#887661");
+          addWallAtZ(primitives, project, center + 1, right, HOUSE.hallBottom, "#887661");
+          addBox(primitives, project, center - 1, 1.15, HOUSE.hallTop, .12, 2.3, .15, "#c49e66");
+          addBox(primitives, project, center + 1, 1.15, HOUSE.hallTop, .12, 2.3, .15, "#c49e66");
+          addBox(primitives, project, center - 1, 1.15, HOUSE.hallBottom, .12, 2.3, .15, "#c49e66");
+          addBox(primitives, project, center + 1, 1.15, HOUSE.hallBottom, .12, 2.3, .15, "#c49e66");
+          const upperSignZ = HOUSE.hallTop + .025;
+          const lowerSignZ = HOUSE.hallBottom - .025;
+          addGamePolygon(primitives, project, [
+            { x: center - .52, y: 2.48, z: upperSignZ }, { x: center + .52, y: 2.48, z: upperSignZ },
+            { x: center + .52, y: 3.02, z: upperSignZ }, { x: center - .52, y: 3.02, z: upperSignZ }
+          ], "#493c36", "#c49e66");
+          addGameText(primitives, project, { x: center, y: 2.72, z: upperSignZ + .012 }, String(room + 1).padStart(2, "0"), "#f0d7a4", .24);
+          addGamePolygon(primitives, project, [
+            { x: center - .52, y: 2.48, z: lowerSignZ }, { x: center + .52, y: 2.48, z: lowerSignZ },
+            { x: center + .52, y: 3.02, z: lowerSignZ }, { x: center - .52, y: 3.02, z: lowerSignZ }
+          ], "#493c36", "#c49e66");
+          addGameText(primitives, project, { x: center, y: 2.72, z: lowerSignZ - .012 }, String(room + 6).padStart(2, "0"), "#f0d7a4", .24);
+        }
+
+        for (let x = .5; x < HOUSE.width; x += 1) {
+          addGamePolygon(primitives, project, [
+            { x, y: .013, z: HOUSE.hallTop + .08 },
+            { x: x + .012, y: .013, z: HOUSE.hallTop + .08 },
+            { x: x + .012, y: .013, z: HOUSE.hallBottom - .08 },
+            { x, y: .013, z: HOUSE.hallBottom - .08 }
+          ], "rgba(239,216,180,.15)");
+        }
+      }
+
+      function addPlayerModel(primitives, project, jumpHeight) {
+        const facingX = Math.sin(gamePlayer.yaw);
+        const facingZ = -Math.cos(gamePlayer.yaw);
+        const sideX = Math.cos(gamePlayer.yaw);
+        const sideZ = Math.sin(gamePlayer.yaw);
+        const bodyScale = gamePlayer.sitting ? .68 : 1;
+        const walk = gamePlayer.walkPhase;
+        const stride = Math.sin(walk) * .17;
+        const yBase = jumpHeight;
+        const point = (side, forward, y) => ({
+          x: gamePlayer.x + sideX * side + facingX * forward,
+          y: yBase + y,
+          z: gamePlayer.z + sideZ * side + facingZ * forward
+        });
+        addGameCircle(primitives, project, { x: gamePlayer.x, y: .035 + jumpHeight * .2, z: gamePlayer.z }, .34, "rgba(12,14,12,.48)");
+        const torsoBottom = .48 * bodyScale;
+        const torsoTop = 1.26 * bodyScale;
+        addGamePolygon(primitives, project, [
+          point(-.27, 0, torsoBottom), point(.27, 0, torsoBottom),
+          point(.22, 0, torsoTop), point(-.22, 0, torsoTop)
+        ], "#9d5c64");
+        addGamePolygon(primitives, project, [
+          point(-.27, .01, torsoBottom), point(-.38, -.04, .63 * bodyScale),
+          point(-.34, -.06, 1.08 * bodyScale), point(-.19, 0, torsoTop)
+        ], "#e0b28f");
+        addGamePolygon(primitives, project, [
+          point(.27, .01, torsoBottom), point(.38, -.04, .63 * bodyScale),
+          point(.34, -.06, 1.08 * bodyScale), point(.19, 0, torsoTop)
+        ], "#e0b28f");
+        for (const side of [-.12, .12]) {
+          addGamePolygon(primitives, project, [
+            point(side - .075, stride * Math.sign(side), .08),
+            point(side + .075, stride * Math.sign(side), .08),
+            point(side + .085, 0, .53 * bodyScale),
+            point(side - .085, 0, .53 * bodyScale)
+          ], "#d5bea1");
+          addGamePolygon(primitives, project, [
+            point(side - .12, stride * Math.sign(side), .035),
+            point(side + .13, stride * Math.sign(side), .035),
+            point(side + .13, stride * Math.sign(side) + .13, .08),
+            point(side - .12, stride * Math.sign(side) + .13, .08)
+          ], "#493a34");
+        }
+        const headY = gamePlayer.sitting ? 1.05 : 1.51;
+        addGameCircle(primitives, project, point(0, 0, headY), .22, "#eac19c");
+        addGameCircle(primitives, project, point(0, -.025, headY + .08), .225, "#30241e");
+        addGamePolygon(primitives, project, [
+          point(-.18, -.03, headY + .04), point(.18, -.03, headY + .04),
+          point(.13, -.04, headY + .18), point(-.13, -.04, headY + .18)
+        ], "#30241e");
+      }
+
+      function getCurrentRoom() {
+        if (gamePlayer.z < HOUSE.hallTop - .08) return Math.max(0, Math.min(4, Math.floor(gamePlayer.x / HOUSE.roomWidth)));
+        if (gamePlayer.z > HOUSE.hallBottom + .08) return 5 + Math.max(0, Math.min(4, Math.floor(gamePlayer.x / HOUSE.roomWidth)));
+        return null;
+      }
+
+      function findNearbyDoor() {
+        let nearest = null;
+        let nearestDistance = Infinity;
+        for (let room = 0; room < 10; room += 1) {
+          const col = room % 5;
+          const x = col * HOUSE.roomWidth + HOUSE.roomWidth / 2;
+          const top = room < 5;
+          const z = top ? HOUSE.hallTop : HOUSE.hallBottom;
+          const distance = Math.hypot(gamePlayer.x - x, gamePlayer.z - z);
+          if (distance < nearestDistance) {
+            nearestDistance = distance;
+            nearest = { index: room, x, z, top, distance };
+          }
+        }
+        return nearest && nearest.distance < 1.12 ? nearest : null;
+      }
+
+      function canStand(x, z) {
+        if (x < .35 || x > HOUSE.width - .35 || z < .35 || z > HOUSE.depth - .35) return false;
+        if (z < HOUSE.hallTop - .08 || z > HOUSE.hallBottom + .08) {
+          for (let partition = 1; partition < 5; partition += 1) {
+            if (Math.abs(x - partition * HOUSE.roomWidth) < .32) return false;
+          }
+        }
+        if (Math.abs(z - HOUSE.hallTop) < .16 || Math.abs(z - HOUSE.hallBottom) < .16) {
+          const closestCenter = Math.round((x - HOUSE.roomWidth / 2) / HOUSE.roomWidth) * HOUSE.roomWidth + HOUSE.roomWidth / 2;
+          if (closestCenter < 0 || closestCenter > HOUSE.width || Math.abs(x - closestCenter) > .9) return false;
+        }
+        return true;
+      }
+
+      function enterNearbyRoom() {
+        if (!nearbyDoor) return;
+        gamePlayer.x = nearbyDoor.x;
+        gamePlayer.z = nearbyDoor.top ? HOUSE.hallTop - .45 : HOUSE.hallBottom + .45;
+        gamePlayer.yaw = nearbyDoor.top ? 0 : Math.PI;
+        activeRoom = nearbyDoor.index;
+      }
+
+      function updateRoomOverlay(roomIndex, door) {
+        const title = $("#gameRoomName");
+        const hint = $("#gameRoomHint");
+        const badge = $("#gameRoomBadge");
+        const gallery = $("#gameGallery");
+        const button = $("#interactButton");
+        if (roomIndex !== displayedGalleryRoom) {
+          displayedGalleryRoom = roomIndex;
+          gameMediaUrls.forEach((url) => URL.revokeObjectURL(url));
+          gameMediaUrls = [];
+          if (roomIndex === null) {
+            gallery.classList.add("hidden");
+            $("#gameMedia").innerHTML = "";
+          } else {
+            const room = ROOMS[roomIndex];
+            title.textContent = room.name;
+            hint.textContent = room.description;
+            badge.textContent = `Xona ${String(roomIndex + 1).padStart(2, "0")} / ${ROOMS.length}`;
+            gallery.classList.remove("hidden");
+            $("#galleryTitle").textContent = room.name;
+            $("#galleryDescription").textContent = room.description;
+            $("#gameMedia").innerHTML = `<div class="empty-state">Ko‘rgazmalar yuklanmoqda…</div>`;
+            getRoomMedia(roomIndex).then((items) => {
+              if (displayedGalleryRoom !== roomIndex) return;
+              if (items.length === 0) {
+                $("#gameMedia").innerHTML = `<div class="empty-state">Bu xonada hali surat yoki video yo‘q.</div>`;
+                return;
+              }
+              $("#gameMedia").innerHTML = items.map((item) => {
+                const url = URL.createObjectURL(item.file);
+                gameMediaUrls.push(url);
+                return `<article class="media-card">${item.type.startsWith("image/")
+                  ? `<img src="${url}" alt="${escapeHtml(item.title)}">`
+                  : `<video src="${url}" controls preload="metadata"></video>`}
+                  <div class="media-card-copy"><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.description || " ")}</p></div></article>`;
+              }).join("");
+            }).catch((error) => {
+              if (displayedGalleryRoom === roomIndex) $("#gameMedia").innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+            });
+          }
+        } else if (roomIndex === null) {
+          title.textContent = "Uy yo‘lagi";
+          hint.textContent = door ? `${ROOMS[door.index].name} xonasi eshigi yonidasiz.` : "Uy ichida erkin yuring va xonalar bo‘ylab sayr qiling.";
+          badge.textContent = "10 xona · bitta uy";
+        }
+        nearbyDoor = door;
+        button.classList.toggle("hidden", !door);
+        if (door) button.textContent = `E · ${ROOMS[door.index].name} xonasiga kirish`;
+      }
+
+      function updatePlayer(timestamp, elapsed) {
+        const keyLeft = movementKeys.has("ArrowLeft") || movementKeys.has("a");
+        const keyRight = movementKeys.has("ArrowRight") || movementKeys.has("d");
+        const keyForward = movementKeys.has("ArrowUp") || movementKeys.has("w");
+        const keyBackward = movementKeys.has("ArrowDown") || movementKeys.has("s");
+        const turn = joystickPointer === null ? Number(keyRight) - Number(keyLeft) : joystickVector.x;
+        const forward = joystickPointer === null ? Number(keyForward) - Number(keyBackward) : -joystickVector.y;
+        gamePlayer.yaw += turn * elapsed * .0024;
+        const step = forward * elapsed * .0032;
+        const nextX = gamePlayer.x + Math.sin(gamePlayer.yaw) * step;
+        const nextZ = gamePlayer.z - Math.cos(gamePlayer.yaw) * step;
+        if (canStand(nextX, gamePlayer.z)) gamePlayer.x = nextX;
+        if (canStand(gamePlayer.x, nextZ)) gamePlayer.z = nextZ;
+        if (Math.abs(forward) > .08) gamePlayer.walkPhase += elapsed * .014 * Math.abs(forward);
+        const room = getCurrentRoom();
+        activeRoom = room;
+        updateRoomOverlay(room, room === null ? findNearbyDoor() : null);
+      }
+
+      function drawGame(timestamp) {
+        const bounds = gameCanvas.getBoundingClientRect();
+        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        const width = bounds.width;
+        const height = bounds.height;
+        const context = gameCanvas.getContext("2d");
+        if (!context || width === 0 || height === 0) return;
+        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        context.clearRect(0, 0, width, height);
+        const sky = context.createLinearGradient(0, 0, 0, height * .62);
+        sky.addColorStop(0, "#18241f");
+        sky.addColorStop(1, "#536052");
+        context.fillStyle = sky;
+        context.fillRect(0, 0, width, height);
+        const project = createProjector(width, height);
+        const primitives = [];
+        addWorldGeometry(primitives, project);
+        const jumpProgress = gamePlayer.jumpUntil > timestamp ? 1 - (gamePlayer.jumpUntil - timestamp) / 720 : 0;
+        const jumpHeight = jumpProgress > 0 ? Math.sin(jumpProgress * Math.PI) * .74 : 0;
+        addPlayerModel(primitives, project, jumpHeight);
+        primitives.sort((a, b) => b.depth - a.depth);
+        primitives.forEach((primitive) => primitive.draw(context));
+        const vignette = context.createRadialGradient(width / 2, height * .5, height * .16, width / 2, height * .5, height * .85);
+        vignette.addColorStop(0, "rgba(8,12,10,0)");
+        vignette.addColorStop(1, "rgba(8,12,10,.42)");
+        context.fillStyle = vignette;
+        context.fillRect(0, 0, width, height);
+      }
+
+      function gameFrame(timestamp) {
+        if (!gameCanvas || !gameCanvas.isConnected || appScreen.classList.contains("hidden")) {
+          stopRoomControls();
+          return;
+        }
+        const elapsed = roomFrameTime ? Math.min(timestamp - roomFrameTime, 40) : 0;
+        roomFrameTime = timestamp;
+        updatePlayer(timestamp, elapsed);
+        drawGame(timestamp);
+        roomAnimationFrame = requestAnimationFrame(gameFrame);
+      }
+
+      function renderAdmin() {
+        activeRoom = null;
+        homeButton.classList.add("hidden");
+        let accounts = [];
+        try {
+          accounts = JSON.parse(localStorage.getItem("oston-accounts") || "[]");
+        } catch {
+          showToast("Hisoblar ro‘yxatini o‘qib bo‘lmadi. Brauzer xotirasini tekshiring.");
+        }
+        mainContent.innerHTML = `<section class="welcome"><div><div class="eyebrow">Boshqaruv paneli</div><h1>Muzeyni boshqaring.</h1><p>Ko‘rgazma qo‘shing va tashrif buyuruvchilar uchun kirish hisobi yarating.</p></div><button id="previewMuseum" class="button primary" type="button">Muzeyni tomosha qilish →</button></section>
+          <div class="admin-layout">
+            <section class="admin-panel"><h2>Ko‘rgazma qo‘shish</h2><p>Surat yoki videoni tanlang — u tanlangan xonada ko‘rinadi.</p>
+              <form id="uploadForm">
+                <div class="field"><label for="mediaRoom">Muzey xonasi</label><select id="mediaRoom" required>${ROOMS.map((room, i) => `<option value="${i}">Xona ${String(i + 1).padStart(2, "0")} — ${escapeHtml(room.name)}</option>`).join("")}</select></div>
+                <div class="field"><label for="mediaTitle">Ko‘rgazma nomi</label><input id="mediaTitle" required maxlength="80" placeholder="Masalan: Samarqand tongi"></div>
+                <div class="field"><label for="mediaDescription">Qisqacha hikoya (ixtiyoriy)</label><textarea id="mediaDescription" maxlength="500" placeholder="Bu ko‘rgazma haqida tashrif buyuruvchiga ayting..."></textarea></div>
+                <div class="field"><label for="mediaFile">Surat yoki video</label><input id="mediaFile" type="file" accept="image/*,video/*" required></div>
+                <div id="uploadPreview" class="upload-preview">Tanlangan fayl shu yerda ko‘rinadi.</div>
+                <p id="uploadError" class="error-message" role="alert"></p>
+                <button class="button primary" type="submit">Ko‘rgazmani saqlash</button>
+              </form>
+            </section>
+            <section class="admin-panel"><h2>Tashrif buyuruvchi hisobi</h2><p>Yangi hisob yarating va login ma’lumotlarini tashrif buyuruvchiga bering.</p>
+              <form id="accountForm">
+                <div class="field"><label for="accountName">Ismi</label><input id="accountName" maxlength="60" required placeholder="Masalan: Dilnoza"></div>
+                <div class="field"><label for="accountUsername">Login</label><input id="accountUsername" maxlength="30" required placeholder="Masalan: dilnoza01"></div>
+                <div class="field"><label for="accountPassword">Parol (kamida 6 belgi)</label><input id="accountPassword" type="password" minlength="6" required placeholder="Yangi parol"></div>
+                <p id="accountError" class="error-message" role="alert"></p>
+                <button class="button primary" type="submit">Hisob yaratish</button>
+              </form>
+              <div class="admin-subsection"><h3>Hisoblar</h3><div id="accountList"></div></div>
+            </section>
+          </div>
+          <div class="footer-note">Demo rejimi: hisoblar hamda media fayllar faqat ushbu brauzer va qurilmada saqlanadi. Sayt boshqa qurilmada yoki boshqa brauzerda ochilsa, ma’lumotlar ko‘rinmaydi. Internet orqali haqiqiy foydalanuvchilarga xizmat ko‘rsatish uchun server va himoyalangan hisob tizimi kerak bo‘ladi.</div>`;
+        renderAccountList(accounts);
+        bindAdminForms();
+        $("#previewMuseum").addEventListener("click", renderHome);
+      }
+
+      function renderAccountList(accounts) {
+        const accountList = $("#accountList");
+        if (!accountList) return;
+        if (accounts.length === 0) {
+          accountList.innerHTML = `<div class="muted" style="padding-top:10px;font-size:.8rem">Hali hisob yaratilmagan.</div>`;
+          return;
+        }
+        accountList.innerHTML = accounts.map((account) => `<div class="account-row"><span><strong>${escapeHtml(account.name)}</strong><br><span class="muted">Login: ${escapeHtml(account.username)}</span></span><button type="button" class="button small danger" data-delete-account="${escapeHtml(account.username)}">O‘chirish</button></div>`).join("");
+        accountList.querySelectorAll("[data-delete-account]").forEach((button) => {
+          button.addEventListener("click", () => {
+            const remaining = accounts.filter((account) => account.username !== button.dataset.deleteAccount);
+            localStorage.setItem("oston-accounts", JSON.stringify(remaining));
+            renderAccountList(remaining);
+            showToast("Tashrif buyuruvchi hisobi o‘chirildi.");
+          });
+        });
+      }
+
+      function bindAdminForms() {
+        const fileInput = $("#mediaFile");
+        fileInput.addEventListener("change", () => {
+          if (previewUrl) URL.revokeObjectURL(previewUrl);
+          previewUrl = null;
+          const file = fileInput.files[0];
+          const preview = $("#uploadPreview");
+          if (!file) {
+            preview.textContent = "Tanlangan fayl shu yerda ko‘rinadi.";
+            return;
+          }
+          if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+            fileInput.value = "";
+            preview.textContent = "Faqat surat va video fayllari qabul qilinadi.";
+            return;
+          }
+          previewUrl = URL.createObjectURL(file);
+          preview.innerHTML = file.type.startsWith("image/")
+            ? `<img src="${previewUrl}" alt="Tanlangan surat">`
+            : `<video src="${previewUrl}" controls></video>`;
+        });
+
+        $("#uploadForm").addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const error = $("#uploadError");
+          error.textContent = "";
+          const file = fileInput.files[0];
+          if (!file || (!file.type.startsWith("image/") && !file.type.startsWith("video/"))) {
+            error.textContent = "Iltimos, surat yoki video faylini tanlang.";
+            return;
+          }
+          if (file.size > 50 * 1024 * 1024) {
+            error.textContent = "Fayl hajmi 50 MB dan oshmasligi kerak.";
+            return;
+          }
+          try {
+            await mediaRequest("readwrite", (store) => store.add({
+              room: Number($("#mediaRoom").value),
+              title: $("#mediaTitle").value.trim(),
+              description: $("#mediaDescription").value.trim(),
+              type: file.type,
+              file,
+              createdAt: Date.now()
+            }));
+            $("#uploadForm").reset();
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+            previewUrl = null;
+            $("#uploadPreview").textContent = "Tanlangan fayl shu yerda ko‘rinadi.";
+            showToast("Ko‘rgazma saqlandi. Endi u tashrif buyuruvchilarga ko‘rinadi.");
+          } catch (saveError) {
+            error.textContent = `${saveError.message} Xotira to‘la bo‘lishi mumkin.`;
+          }
+        });
+
+        $("#accountForm").addEventListener("submit", (event) => {
+          event.preventDefault();
+          const error = $("#accountError");
+          error.textContent = "";
+          const name = $("#accountName").value.trim();
+          const username = $("#accountUsername").value.trim();
+          const password = $("#accountPassword").value;
+          if (!/^[A-Za-z0-9._-]+$/.test(username)) {
+            error.textContent = "Login faqat lotin harflari, raqam, nuqta, chiziqcha yoki pastki chiziqdan iborat bo‘lsin.";
+            return;
+          }
+          if (username.toLowerCase() === ADMIN.username) {
+            error.textContent = "Bu login band. Boshqa login tanlang.";
+            return;
+          }
+          let stored;
+          try {
+            stored = JSON.parse(localStorage.getItem("oston-accounts") || "[]");
+            if (!Array.isArray(stored)) throw new Error("Hisoblar ro‘yxati noto‘g‘ri.");
+          } catch {
+            error.textContent = "Hisoblar ro‘yxatini o‘qib bo‘lmadi. Brauzer xotirasini tekshiring.";
+            return;
+          }
+          if (stored.some((account) => account.username.toLowerCase() === username.toLowerCase())) {
+            error.textContent = "Bu login allaqachon ishlatilgan.";
+            return;
+          }
+          stored.push({ name, username, password, role: "visitor" });
+          try {
+            localStorage.setItem("oston-accounts", JSON.stringify(stored));
+          } catch {
+            error.textContent = "Brauzer xotirasiga hisobni saqlab bo‘lmadi.";
+            return;
+          }
+          $("#accountForm").reset();
+          renderAccountList(stored);
+          showToast(`Hisob yaratildi. Login: ${username}`);
+        });
+      }
+    })();
+  </script>
+  <script>
+    const installButton = document.querySelector("#installAppButton");
+    let installPrompt;
+
+    window.addEventListener("beforeinstallprompt", (event) => {
+      event.preventDefault();
+      installPrompt = event;
+      installButton.classList.remove("hidden");
+    });
+
+    installButton.addEventListener("click", async () => {
+      if (!installPrompt) return;
+      await installPrompt.prompt();
+      await installPrompt.userChoice;
+      installPrompt = null;
+      installButton.classList.add("hidden");
+    });
+
+    window.addEventListener("appinstalled", () => {
+      installPrompt = null;
+      installButton.classList.add("hidden");
+    });
+
+    if ("serviceWorker" in navigator && window.isSecureContext) {
+      navigator.serviceWorker.register("./service-worker.js").catch((error) => {
+        console.error("Service worker registration failed:", error);
+      });
+    }
+  </script>
+</body>
+</html>
