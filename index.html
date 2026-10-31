@@ -267,7 +267,7 @@
         { name: "Abadiy muhabbat", description: "Har kuni yangilanadigan mehr va birga yoziladigan hikoya." }
       ];
       const DB_NAME = "oston-digital-museum";
-      const DB_VERSION = 1;
+      const DB_VERSION = 2;
       const $ = (selector, root = document) => root.querySelector(selector);
       const loginScreen = $("#loginScreen");
       const appScreen = $("#appScreen");
@@ -284,6 +284,8 @@
       let gameResizeHandler = null;
       let displayedGalleryRoom = null;
       let gameMediaUrls = [];
+      let wallMediaUrls = [];
+      let wallMedia = Array.from({ length: 10 }, () => []);
       let nearbyDoor = null;
       let joystickPointer = null;
       let joystickVector = { x: 0, y: 0 };
@@ -441,6 +443,16 @@
         displayedGalleryRoom = null;
         gameMediaUrls.forEach((url) => URL.revokeObjectURL(url));
         gameMediaUrls = [];
+        wallMedia.forEach((roomMedia) => roomMedia.forEach((item) => {
+          if (item.element instanceof HTMLVideoElement) {
+            item.element.pause();
+            item.element.removeAttribute("src");
+            item.element.load();
+          }
+        }));
+        wallMediaUrls.forEach((url) => URL.revokeObjectURL(url));
+        wallMediaUrls = [];
+        wallMedia = Array.from({ length: 10 }, () => []);
       }
 
       function startGame() {
@@ -460,6 +472,7 @@
         gameResizeHandler = syncCanvasSize;
         window.addEventListener("resize", syncCanvasSize);
         syncCanvasSize();
+        loadWallMedia();
 
         const moveJoystick = (event) => {
           if (joystickPointer !== event.pointerId) return;
@@ -580,6 +593,65 @@
         });
       }
 
+      function drawImageTriangle(context, image, sourceWidth, sourceHeight, sourcePoints, destinationPoints) {
+        const [sourceA, sourceB, sourceC] = sourcePoints;
+        const [destinationA, destinationB, destinationC] = destinationPoints;
+        const determinant = sourceA.x * (sourceB.y - sourceC.y)
+          + sourceB.x * (sourceC.y - sourceA.y)
+          + sourceC.x * (sourceA.y - sourceB.y);
+        if (!determinant) return;
+
+        const a = (destinationA.x * (sourceB.y - sourceC.y)
+          + destinationB.x * (sourceC.y - sourceA.y)
+          + destinationC.x * (sourceA.y - sourceB.y)) / determinant;
+        const c = (destinationA.x * (sourceC.x - sourceB.x)
+          + destinationB.x * (sourceA.x - sourceC.x)
+          + destinationC.x * (sourceB.x - sourceA.x)) / determinant;
+        const e = (destinationA.x * (sourceB.x * sourceC.y - sourceC.x * sourceB.y)
+          + destinationB.x * (sourceC.x * sourceA.y - sourceA.x * sourceC.y)
+          + destinationC.x * (sourceA.x * sourceB.y - sourceB.x * sourceA.y)) / determinant;
+        const b = (destinationA.y * (sourceB.y - sourceC.y)
+          + destinationB.y * (sourceC.y - sourceA.y)
+          + destinationC.y * (sourceA.y - sourceB.y)) / determinant;
+        const d = (destinationA.y * (sourceC.x - sourceB.x)
+          + destinationB.y * (sourceA.x - sourceC.x)
+          + destinationC.y * (sourceB.x - sourceA.x)) / determinant;
+        const f = (destinationA.y * (sourceB.x * sourceC.y - sourceC.x * sourceB.y)
+          + destinationB.y * (sourceC.x * sourceA.y - sourceA.x * sourceC.y)
+          + destinationC.y * (sourceA.x * sourceB.y - sourceB.x * sourceA.y)) / determinant;
+
+        context.save();
+        context.beginPath();
+        context.moveTo(destinationA.x, destinationA.y);
+        context.lineTo(destinationB.x, destinationB.y);
+        context.lineTo(destinationC.x, destinationC.y);
+        context.closePath();
+        context.clip();
+        context.transform(a, b, c, d, e, f);
+        context.drawImage(image, 0, 0, sourceWidth, sourceHeight);
+        context.restore();
+      }
+
+      function addGameImage(primitives, project, image, points) {
+        const projected = points.map(project);
+        if (projected.some((point) => point === null)) return;
+        const sourceWidth = image instanceof HTMLVideoElement ? image.videoWidth : image.naturalWidth;
+        const sourceHeight = image instanceof HTMLVideoElement ? image.videoHeight : image.naturalHeight;
+        if (!sourceWidth || !sourceHeight) return;
+        const depth = projected.reduce((sum, point) => sum + point.depth, 0) / projected.length;
+        primitives.push({
+          depth,
+          draw(context) {
+            drawImageTriangle(context, image, sourceWidth, sourceHeight, [
+              { x: 0, y: 0 }, { x: sourceWidth, y: 0 }, { x: sourceWidth, y: sourceHeight }
+            ], [projected[0], projected[1], projected[2]]);
+            drawImageTriangle(context, image, sourceWidth, sourceHeight, [
+              { x: 0, y: 0 }, { x: sourceWidth, y: sourceHeight }, { x: 0, y: sourceHeight }
+            ], [projected[0], projected[2], projected[3]]);
+          }
+        });
+      }
+
       function addGameText(primitives, project, point, text, color, size) {
         const projected = project(point);
         if (!projected) return;
@@ -671,6 +743,83 @@
         addBox(primitives, project, centerX - 1.65, .28, upper ? 4.6 : 15.4, 1.1, .52, .9, ROOM_FLOORS[index]);
       }
 
+      function addWallMediaPanels(primitives, project, index) {
+        const items = wallMedia[index];
+        if (!items.length) return;
+
+        const centerX = (index % 5) * HOUSE.roomWidth + HOUSE.roomWidth / 2;
+        const upper = index < 5;
+        const toward = upper ? 1 : -1;
+        const wallZ = (upper ? HOUSE.hallTop : HOUSE.hallBottom) + toward * .025;
+        items.forEach((item, itemIndex) => {
+          const panelCenterX = centerX + (itemIndex === 0 ? -1.72 : 1.72);
+          const left = panelCenterX - .49;
+          const right = panelCenterX + .49;
+          const bottom = .97;
+          const top = 2.28;
+          addGamePolygon(primitives, project, [
+            { x: left - .07, y: bottom - .07, z: wallZ },
+            { x: right + .07, y: bottom - .07, z: wallZ },
+            { x: right + .07, y: top + .07, z: wallZ },
+            { x: left - .07, y: top + .07, z: wallZ }
+          ], "#b99a69", "rgba(247,220,171,.6)");
+          addGamePolygon(primitives, project, [
+            { x: left, y: bottom, z: wallZ + toward * .018 },
+            { x: right, y: bottom, z: wallZ + toward * .018 },
+            { x: right, y: top, z: wallZ + toward * .018 },
+            { x: left, y: top, z: wallZ + toward * .018 }
+          ], "#302923");
+          addGameImage(primitives, project, item.element, [
+            { x: left + .045, y: bottom + .045, z: wallZ + toward * .035 },
+            { x: right - .045, y: bottom + .045, z: wallZ + toward * .035 },
+            { x: right - .045, y: top - .045, z: wallZ + toward * .035 },
+            { x: left + .045, y: top - .045, z: wallZ + toward * .035 }
+          ]);
+          if (item.isVideo) {
+            addGameText(primitives, project, { x: right - .2, y: bottom + .2, z: wallZ + toward * .04 }, "▶", "#fff4da", .2);
+          }
+        });
+      }
+
+      async function loadWallMedia() {
+        try {
+          const records = await mediaRequest("readonly", (store) => store.getAll());
+          if (!gameCanvas?.isConnected) return;
+          const recordsByRoom = Array.from({ length: ROOMS.length }, () => []);
+          records.forEach((record) => {
+            if (Number.isInteger(record.room) && recordsByRoom[record.room]) recordsByRoom[record.room].push(record);
+          });
+          recordsByRoom.forEach((roomRecords, roomIndex) => {
+            roomRecords.sort((a, b) => b.createdAt - a.createdAt).slice(0, 2).forEach((record) => {
+              const url = URL.createObjectURL(record.file);
+              wallMediaUrls.push(url);
+              let element;
+              if (record.type.startsWith("image/")) {
+                element = new Image();
+                element.src = url;
+              } else if (record.type.startsWith("video/")) {
+                element = document.createElement("video");
+                element.muted = true;
+                element.playsInline = true;
+                element.loop = true;
+                element.preload = "auto";
+                element.src = url;
+                element.addEventListener("loadeddata", () => {
+                  if (gameCanvas?.isConnected) element.play().catch((error) => {
+                    console.warn("Devor videosini avtomatik ijro etib bo‘lmadi:", error);
+                  });
+                }, { once: true });
+                element.load();
+              }
+              if (element) wallMedia[roomIndex].push({ element, isVideo: record.type.startsWith("video/") });
+            });
+          });
+        } catch (error) {
+          console.error("Xona devoridagi ko‘rgazmalarni yuklab bo‘lmadi:", error);
+          showToast("Xona devoridagi ko‘rgazmalarni yuklab bo‘lmadi.");
+        }
+      }
+
       function addWorldGeometry(primitives, project) {
         const colors = ROOM_FLOORS;
         for (let index = 0; index < 10; index += 1) {
@@ -713,6 +862,7 @@
           addBox(primitives, project, center + 1, 1.15, HOUSE.hallTop, .12, 2.3, .15, "#c49e66");
           addBox(primitives, project, center - 1, 1.15, HOUSE.hallBottom, .12, 2.3, .15, "#c49e66");
           addBox(primitives, project, center + 1, 1.15, HOUSE.hallBottom, .12, 2.3, .15, "#c49e66");
+          addWallMediaPanels(primitives, project, room);
           const upperSignZ = HOUSE.hallTop + .025;
           const lowerSignZ = HOUSE.hallBottom - .025;
           addGamePolygon(primitives, project, [
