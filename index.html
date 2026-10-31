@@ -547,12 +547,16 @@
 
       function createProjector(width, height) {
         const forward = { x: Math.sin(gamePlayer.yaw), y: 0, z: -Math.cos(gamePlayer.yaw) };
+        const jumpProgress = gamePlayer.jumpUntil > performance.now()
+          ? 1 - (gamePlayer.jumpUntil - performance.now()) / 720
+          : 0;
+        const jumpHeight = jumpProgress > 0 ? Math.sin(jumpProgress * Math.PI) * .74 : 0;
         const camera = {
-          x: gamePlayer.x - forward.x * 4.3,
-          y: 3.15,
-          z: gamePlayer.z - forward.z * 4.3
+          x: gamePlayer.x,
+          y: (gamePlayer.sitting ? .98 : 1.58) + jumpHeight,
+          z: gamePlayer.z
         };
-        const target = { x: gamePlayer.x + forward.x * .4, y: 1.05, z: gamePlayer.z + forward.z * .4 };
+        const target = { x: gamePlayer.x + forward.x, y: camera.y, z: gamePlayer.z + forward.z };
         const viewDirection = normalizeVector({ x: target.x - camera.x, y: target.y - camera.y, z: target.z - camera.z });
         const right = normalizeVector(crossVector(viewDirection, { x: 0, y: 1, z: 0 }));
         const up = crossVector(right, viewDirection);
@@ -863,18 +867,6 @@
           addBox(primitives, project, center - 1, 1.15, HOUSE.hallBottom, .12, 2.3, .15, "#c49e66");
           addBox(primitives, project, center + 1, 1.15, HOUSE.hallBottom, .12, 2.3, .15, "#c49e66");
           addWallMediaPanels(primitives, project, room);
-          const upperSignZ = HOUSE.hallTop + .025;
-          const lowerSignZ = HOUSE.hallBottom - .025;
-          addGamePolygon(primitives, project, [
-            { x: center - .52, y: 2.48, z: upperSignZ }, { x: center + .52, y: 2.48, z: upperSignZ },
-            { x: center + .52, y: 3.02, z: upperSignZ }, { x: center - .52, y: 3.02, z: upperSignZ }
-          ], "#493c36", "#c49e66");
-          addGameText(primitives, project, { x: center, y: 2.72, z: upperSignZ + .012 }, String(room + 1).padStart(2, "0"), "#f0d7a4", .24);
-          addGamePolygon(primitives, project, [
-            { x: center - .52, y: 2.48, z: lowerSignZ }, { x: center + .52, y: 2.48, z: lowerSignZ },
-            { x: center + .52, y: 3.02, z: lowerSignZ }, { x: center - .52, y: 3.02, z: lowerSignZ }
-          ], "#493c36", "#c49e66");
-          addGameText(primitives, project, { x: center, y: 2.72, z: lowerSignZ - .012 }, String(room + 6).padStart(2, "0"), "#f0d7a4", .24);
         }
 
         for (let x = .5; x < HOUSE.width; x += 1) {
@@ -1070,9 +1062,6 @@
         const project = createProjector(width, height);
         const primitives = [];
         addWorldGeometry(primitives, project);
-        const jumpProgress = gamePlayer.jumpUntil > timestamp ? 1 - (gamePlayer.jumpUntil - timestamp) / 720 : 0;
-        const jumpHeight = jumpProgress > 0 ? Math.sin(jumpProgress * Math.PI) * .74 : 0;
-        addPlayerModel(primitives, project, jumpHeight);
         primitives.sort((a, b) => b.depth - a.depth);
         primitives.forEach((primitive) => primitive.draw(context));
         const vignette = context.createRadialGradient(width / 2, height * .5, height * .16, width / 2, height * .5, height * .85);
