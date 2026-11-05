@@ -1,7 +1,8 @@
-const CACHE_NAME = "ikki-qalb-app-v3";
+const CACHE_NAME = "ikki-qalb-app-v4";
 const APP_SHELL = [
   "./",
   "./index.html",
+  "./supabase-config.js",
   "./manifest.webmanifest",
   "./icon.svg"
 ];

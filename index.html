@@ -231,12 +231,12 @@
           <button type="button" data-role="admin">Administrator</button>
         </div>
         <form id="loginForm" class="login-form">
-          <div class="field"><label for="loginName">Login</label><input id="loginName" name="username" autocomplete="username" required placeholder="Loginingizni kiriting"></div>
+          <div class="field"><label for="loginName">Login yoki administrator emaili</label><input id="loginName" name="username" autocomplete="username" required placeholder="Loginingizni kiriting"></div>
           <div class="field"><label for="loginPassword">Parol</label><input id="loginPassword" name="password" type="password" autocomplete="current-password" required placeholder="Parolingizni kiriting"></div>
           <p id="loginError" class="error-message" role="alert"></p>
           <button class="button primary" type="submit">Muzeyga kirish <span aria-hidden="true">→</span></button>
         </form>
-        <div class="login-hint"><strong>Tashrif buyuruvchimisiz?</strong> Login va parolni muzey administratoridan oling.<br><strong>Admin demo:</strong> admin / muzey2026</div>
+        <div id="backendHint" class="login-hint"><strong>Tashrif buyuruvchimisiz?</strong> Login va parolni muzey administratoridan oling.</div>
       </div>
     </div>
   </section>
@@ -250,10 +250,10 @@
   </section>
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 
+  <script src="./supabase-config.js"></script>
   <script>
     (() => {
       "use strict";
-      const ADMIN = { username: "admin", password: "muzey2026", role: "admin", name: "Administrator" };
       const ROOMS = [
         { name: "Birinchi uchrashuv", description: "Nigohlar to‘qnashgan, yuraklar hayajonga to‘lgan lahza." },
         { name: "Ilk suhbat", description: "Unutilmas tanishuv va soatlab davom etgan samimiy suhbatlar." },
@@ -266,25 +266,23 @@
         { name: "Birgalikdagi orzular", description: "Birga qurilgan rejalar va kelajak haqidagi tilaklar." },
         { name: "Abadiy muhabbat", description: "Har kuni yangilanadigan mehr va birga yoziladigan hikoya." }
       ];
-      const DB_NAME = "oston-digital-museum";
-      const DB_VERSION = 2;
       const $ = (selector, root = document) => root.querySelector(selector);
       const loginScreen = $("#loginScreen");
       const appScreen = $("#appScreen");
       const mainContent = $("#mainContent");
       const homeButton = $("#homeButton");
+      const backendConfig = window.MUSEUM_SUPABASE_CONFIG || {};
       let loginRole = "visitor";
       let currentUser = null;
+      let authSession = null;
+      let refreshPromise = null;
       let activeRoom = null;
       let toastTimer;
       let previewUrl = null;
-      let databasePromise;
       let gamePlayer = { x: 15, z: 10, yaw: 0, sitting: false, jumpUntil: 0, walkPhase: 0 };
       let gameCanvas = null;
       let gameResizeHandler = null;
       let displayedGalleryRoom = null;
-      let gameMediaUrls = [];
-      let wallMediaUrls = [];
       let wallMedia = Array.from({ length: 10 }, () => []);
       let nearbyDoor = null;
       let joystickPointer = null;
@@ -292,6 +290,10 @@
       let movementKeys = new Set();
       let roomAnimationFrame = null;
       let roomFrameTime = 0;
+      const supportedMediaTypes = new Set([
+        "image/jpeg", "image/png", "image/gif", "image/webp",
+        "video/mp4", "video/webm", "video/quicktime"
+      ]);
 
       function escapeHtml(value) {
         return String(value).replace(/[&<>"']/g, (char) => ({
@@ -299,38 +301,181 @@
         })[char]);
       }
 
-      function openDatabase() {
-        if (!databasePromise) {
-          databasePromise = new Promise((resolve, reject) => {
-            const request = indexedDB.open(DB_NAME, DB_VERSION);
-            request.onupgradeneeded = () => {
-              const db = request.result;
-              if (!db.objectStoreNames.contains("media")) {
-                const store = db.createObjectStore("media", { keyPath: "id", autoIncrement: true });
-                store.createIndex("room", "room", { unique: false });
-              }
-            };
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(new Error("Brauzer xotirasi ochilmadi."));
-          });
+      function ensureBackendConfig() {
+        if (typeof backendConfig.url !== "string" || typeof backendConfig.anonKey !== "string" ||
+            !backendConfig.url.trim() || !backendConfig.anonKey.trim()) {
+          throw new Error("Server hali ulanmagan. Supabase URL va anon/public kalitini supabase-config.js fayliga kiriting.");
         }
-        return databasePromise;
+        try {
+          const parsed = new URL(backendConfig.url);
+          if (!["https:", "http:"].includes(parsed.protocol)) throw new Error();
+        } catch {
+          throw new Error("Supabase URL noto‘g‘ri. supabase-config.js faylini tekshiring.");
+        }
       }
 
-      async function mediaRequest(mode, operation) {
-        const db = await openDatabase();
-        return new Promise((resolve, reject) => {
-          const transaction = db.transaction("media", mode);
-          const request = operation(transaction.objectStore("media"));
-          request.onsuccess = () => resolve(request.result);
-          request.onerror = () => reject(new Error("Media bilan ishlashda xatolik yuz berdi."));
-          transaction.onabort = () => reject(new Error("Brauzer xotirasiga yozib bo‘lmadi."));
+      async function backendRequest(path, options = {}) {
+        ensureBackendConfig();
+        if (!options.token && authSession?.access_token &&
+            Number(authSession.expires_at || 0) * 1000 < Date.now() + 60000) {
+          await refreshAuthSession();
+        }
+        const headers = {
+          apikey: backendConfig.anonKey,
+          Authorization: `Bearer ${options.token || authSession?.access_token || backendConfig.anonKey}`,
+          ...options.headers
+        };
+        let body = options.body;
+        if (body && !(body instanceof Blob) && !(body instanceof FormData)) {
+          headers["Content-Type"] = "application/json";
+          body = JSON.stringify(body);
+        }
+        const response = await fetch(`${backendConfig.url.replace(/\/+$/, "")}${path}`, {
+          method: options.method || "GET",
+          headers,
+          body
         });
+        if (response.status === 204) return null;
+        const responseText = await response.text();
+        let result = null;
+        if (responseText) {
+          try {
+            result = JSON.parse(responseText);
+          } catch {
+            result = { message: responseText };
+          }
+        }
+        if (!response.ok) {
+          const error = new Error(result?.msg || result?.message || result?.error_description || result?.error || `Server xatosi (${response.status}).`);
+          error.status = response.status;
+          throw error;
+        }
+        return result;
+      }
+
+      function saveAuthSession(session) {
+        if (session) {
+          session.expires_at = session.expires_at || Math.floor(Date.now() / 1000) + (session.expires_in || 3600);
+        }
+        authSession = session;
+        if (session) localStorage.setItem("ikki-qalb-auth", JSON.stringify(session));
+        else localStorage.removeItem("ikki-qalb-auth");
+      }
+
+      async function refreshAuthSession() {
+        if (!authSession?.refresh_token) throw new Error("Seans tugadi. Iltimos, qayta kiring.");
+        if (!refreshPromise) {
+          refreshPromise = backendRequest("/auth/v1/token?grant_type=refresh_token", {
+            method: "POST",
+            body: { refresh_token: authSession.refresh_token },
+            token: backendConfig.anonKey
+          }).then((refreshed) => {
+            saveAuthSession(refreshed);
+            return refreshed;
+          }).finally(() => {
+            refreshPromise = null;
+          });
+        }
+        return refreshPromise;
+      }
+
+      async function getProfile(userId, token) {
+        const profiles = await backendRequest(`/rest/v1/profiles?select=id,username,display_name,role&id=eq.${encodeURIComponent(userId)}&limit=1`, { token });
+        if (!profiles?.length) throw new Error("Profil topilmadi. Administrator Supabase jadval sozlamalarini tekshirsin.");
+        return profiles[0];
+      }
+
+      function visitorEmail(username) {
+        return `${username.trim().toLowerCase()}@users.ikkiqalb.example.com`;
+      }
+
+      async function signIn(username, password, role) {
+        ensureBackendConfig();
+        if (!username || !password) throw new Error("Login va parolni kiriting.");
+        const email = role === "admin" ? username.trim() : visitorEmail(username);
+        const session = await backendRequest("/auth/v1/token?grant_type=password", {
+          method: "POST",
+          body: { email, password },
+          token: backendConfig.anonKey
+        });
+        saveAuthSession(session);
+        try {
+          const profile = await getProfile(session.user.id, session.access_token);
+          if (profile.role !== role) {
+            throw new Error(role === "admin"
+              ? "Bu hisob administrator emas. Admin rolini Supabase’da sozlang."
+              : "Bu hisob tashrif buyuruvchi hisobi emas.");
+          }
+          return {
+            id: profile.id,
+            username: profile.username,
+            name: profile.display_name,
+            role: profile.role
+          };
+        } catch (error) {
+          saveAuthSession(null);
+          throw error;
+        }
+      }
+
+      async function restoreSession() {
+        try {
+          const stored = JSON.parse(localStorage.getItem("ikki-qalb-auth") || "null");
+          if (!stored?.access_token || !stored?.refresh_token) return;
+          authSession = stored;
+          if (Number(stored.expires_at || 0) * 1000 < Date.now() + 30000) await refreshAuthSession();
+          let user;
+          try {
+            user = await backendRequest("/auth/v1/user");
+          } catch (error) {
+            if (error.status !== 401) throw error;
+            await refreshAuthSession();
+            user = await backendRequest("/auth/v1/user");
+          }
+          const profile = await getProfile(user.id, authSession.access_token);
+          showApp({ id: profile.id, username: profile.username, name: profile.display_name, role: profile.role });
+        } catch (error) {
+          saveAuthSession(null);
+          $("#loginError").textContent = error.message;
+        }
+      }
+
+      async function signedMediaUrl(storagePath) {
+        const encodedPath = storagePath.split("/").map(encodeURIComponent).join("/");
+        const result = await backendRequest(`/storage/v1/object/sign/museum-media/${encodedPath}`, {
+          method: "POST",
+          body: { expiresIn: 86400 }
+        });
+        if (typeof result?.signedURL !== "string") throw new Error("Media uchun xavfsiz havola yaratilmadi.");
+        const storageBase = `${backendConfig.url.replace(/\/+$/, "")}/storage/v1`;
+        return result.signedURL.startsWith("http")
+          ? result.signedURL
+          : `${storageBase}${result.signedURL.startsWith("/") ? result.signedURL : `/${result.signedURL}`}`;
       }
 
       async function getRoomMedia(room) {
-        const records = await mediaRequest("readonly", (store) => store.index("room").getAll(room));
-        return records.sort((a, b) => b.createdAt - a.createdAt);
+        const records = await backendRequest(`/rest/v1/museum_media?select=id,room,title,description,storage_path,content_type,created_at&room=eq.${room}&order=created_at.desc`);
+        return Promise.all(records.map(async (record) => ({
+          ...record,
+          type: record.content_type,
+          url: await signedMediaUrl(record.storage_path)
+        })));
+      }
+
+      async function getAllRoomMedia() {
+        const rooms = await Promise.all(ROOMS.map((_, room) => backendRequest(
+          `/rest/v1/museum_media?select=id,room,title,description,storage_path,content_type,created_at&room=eq.${room}&order=created_at.desc&limit=2`
+        )));
+        const records = rooms.flat();
+        return Promise.all(records.map(async (record) => ({
+          ...record,
+          type: record.content_type,
+          url: await signedMediaUrl(record.storage_path)
+        })));
+      }
+
+      async function invokeVisitorFunction(payload) {
+        return backendRequest("/functions/v1/manage-visitors", { method: "POST", body: payload });
       }
 
       async function showToast(message) {
@@ -363,36 +508,30 @@
         else renderHome();
       }
 
-      $("#loginForm").addEventListener("submit", (event) => {
+      $("#loginForm").addEventListener("submit", async (event) => {
         event.preventDefault();
         const username = $("#loginName").value.trim();
         const password = $("#loginPassword").value;
         const error = $("#loginError");
-        if (loginRole === "admin") {
-          if (username !== ADMIN.username || password !== ADMIN.password) {
-            error.textContent = "Admin logini yoki paroli noto‘g‘ri.";
-            return;
-          }
-          showApp(ADMIN);
-          return;
-        }
-        let accounts;
+        error.textContent = "";
         try {
-          accounts = JSON.parse(localStorage.getItem("oston-accounts") || "[]");
-        } catch {
-          error.textContent = "Hisoblar ro‘yxatini o‘qib bo‘lmadi. Brauzer xotirasini tekshiring.";
-          return;
+          showApp(await signIn(username, password, loginRole));
+        } catch (loginError) {
+          error.textContent = loginError.message;
         }
-        const account = accounts.find((item) => item.username.toLowerCase() === username.toLowerCase() && item.password === password);
-        if (!account) {
-          error.textContent = "Login yoki parol noto‘g‘ri. Hisobni administratoringizdan so‘rang.";
-          return;
-        }
-        showApp(account);
       });
 
-      $("#logoutButton").addEventListener("click", () => {
+      $("#logoutButton").addEventListener("click", async () => {
         stopRoomControls();
+        let logoutError = null;
+        if (authSession?.access_token) {
+          try {
+            await backendRequest("/auth/v1/logout", { method: "POST" });
+          } catch (error) {
+            logoutError = error;
+          }
+        }
+        saveAuthSession(null);
         currentUser = null;
         activeRoom = null;
         appScreen.classList.add("hidden");
@@ -400,6 +539,7 @@
         $("#loginForm").reset();
         $("#loginError").textContent = "";
         setLoginRole("visitor");
+        if (logoutError) showToast(`Seans qurilmadan chiqdi, server javobi: ${logoutError.message}`);
       });
       homeButton.addEventListener("click", () => {
         stopRoomControls();
@@ -441,8 +581,6 @@
         gameResizeHandler = null;
         gameCanvas = null;
         displayedGalleryRoom = null;
-        gameMediaUrls.forEach((url) => URL.revokeObjectURL(url));
-        gameMediaUrls = [];
         wallMedia.forEach((roomMedia) => roomMedia.forEach((item) => {
           if (item.element instanceof HTMLVideoElement) {
             item.element.pause();
@@ -450,8 +588,6 @@
             item.element.load();
           }
         }));
-        wallMediaUrls.forEach((url) => URL.revokeObjectURL(url));
-        wallMediaUrls = [];
         wallMedia = Array.from({ length: 10 }, () => []);
       }
 
@@ -787,27 +923,25 @@
 
       async function loadWallMedia() {
         try {
-          const records = await mediaRequest("readonly", (store) => store.getAll());
+          const records = await getAllRoomMedia();
           if (!gameCanvas?.isConnected) return;
           const recordsByRoom = Array.from({ length: ROOMS.length }, () => []);
           records.forEach((record) => {
             if (Number.isInteger(record.room) && recordsByRoom[record.room]) recordsByRoom[record.room].push(record);
           });
           recordsByRoom.forEach((roomRecords, roomIndex) => {
-            roomRecords.sort((a, b) => b.createdAt - a.createdAt).slice(0, 2).forEach((record) => {
-              const url = URL.createObjectURL(record.file);
-              wallMediaUrls.push(url);
+            roomRecords.slice(0, 2).forEach((record) => {
               let element;
               if (record.type.startsWith("image/")) {
                 element = new Image();
-                element.src = url;
+                element.src = record.url;
               } else if (record.type.startsWith("video/")) {
                 element = document.createElement("video");
                 element.muted = true;
                 element.playsInline = true;
                 element.loop = true;
                 element.preload = "auto";
-                element.src = url;
+                element.src = record.url;
                 element.addEventListener("loadeddata", () => {
                   if (gameCanvas?.isConnected) element.play().catch((error) => {
                     console.warn("Devor videosini avtomatik ijro etib bo‘lmadi:", error);
@@ -984,8 +1118,6 @@
         const button = $("#interactButton");
         if (roomIndex !== displayedGalleryRoom) {
           displayedGalleryRoom = roomIndex;
-          gameMediaUrls.forEach((url) => URL.revokeObjectURL(url));
-          gameMediaUrls = [];
           if (roomIndex === null) {
             gallery.classList.add("hidden");
             $("#gameMedia").innerHTML = "";
@@ -1005,11 +1137,9 @@
                 return;
               }
               $("#gameMedia").innerHTML = items.map((item) => {
-                const url = URL.createObjectURL(item.file);
-                gameMediaUrls.push(url);
                 return `<article class="media-card">${item.type.startsWith("image/")
-                  ? `<img src="${url}" alt="${escapeHtml(item.title)}">`
-                  : `<video src="${url}" controls preload="metadata"></video>`}
+                  ? `<img src="${item.url}" alt="${escapeHtml(item.title)}">`
+                  : `<video src="${item.url}" controls preload="metadata"></video>`}
                   <div class="media-card-copy"><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.description || " ")}</p></div></article>`;
               }).join("");
             }).catch((error) => {
@@ -1086,12 +1216,6 @@
       function renderAdmin() {
         activeRoom = null;
         homeButton.classList.add("hidden");
-        let accounts = [];
-        try {
-          accounts = JSON.parse(localStorage.getItem("oston-accounts") || "[]");
-        } catch {
-          showToast("Hisoblar ro‘yxatini o‘qib bo‘lmadi. Brauzer xotirasini tekshiring.");
-        }
         mainContent.innerHTML = `<section class="welcome"><div><div class="eyebrow">Boshqaruv paneli</div><h1>Muzeyni boshqaring.</h1><p>Ko‘rgazma qo‘shing va tashrif buyuruvchilar uchun kirish hisobi yarating.</p></div><button id="previewMuseum" class="button primary" type="button">Muzeyni tomosha qilish →</button></section>
           <div class="admin-layout">
             <section class="admin-panel"><h2>Ko‘rgazma qo‘shish</h2><p>Surat yoki videoni tanlang — u tanlangan xonada ko‘rinadi.</p>
@@ -1099,7 +1223,7 @@
                 <div class="field"><label for="mediaRoom">Muzey xonasi</label><select id="mediaRoom" required>${ROOMS.map((room, i) => `<option value="${i}">Xona ${String(i + 1).padStart(2, "0")} — ${escapeHtml(room.name)}</option>`).join("")}</select></div>
                 <div class="field"><label for="mediaTitle">Ko‘rgazma nomi</label><input id="mediaTitle" required maxlength="80" placeholder="Masalan: Samarqand tongi"></div>
                 <div class="field"><label for="mediaDescription">Qisqacha hikoya (ixtiyoriy)</label><textarea id="mediaDescription" maxlength="500" placeholder="Bu ko‘rgazma haqida tashrif buyuruvchiga ayting..."></textarea></div>
-                <div class="field"><label for="mediaFile">Surat yoki video</label><input id="mediaFile" type="file" accept="image/*,video/*" required></div>
+                <div class="field"><label for="mediaFile">Surat yoki video (50 MB gacha)</label><input id="mediaFile" type="file" accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime" required></div>
                 <div id="uploadPreview" class="upload-preview">Tanlangan fayl shu yerda ko‘rinadi.</div>
                 <p id="uploadError" class="error-message" role="alert"></p>
                 <button class="button primary" type="submit">Ko‘rgazmani saqlash</button>
@@ -1109,33 +1233,52 @@
               <form id="accountForm">
                 <div class="field"><label for="accountName">Ismi</label><input id="accountName" maxlength="60" required placeholder="Masalan: Dilnoza"></div>
                 <div class="field"><label for="accountUsername">Login</label><input id="accountUsername" maxlength="30" required placeholder="Masalan: dilnoza01"></div>
-                <div class="field"><label for="accountPassword">Parol (kamida 6 belgi)</label><input id="accountPassword" type="password" minlength="6" required placeholder="Yangi parol"></div>
+                <div class="field"><label for="accountPassword">Parol (kamida 8 belgi)</label><input id="accountPassword" type="password" minlength="8" maxlength="72" required placeholder="Yangi parol"></div>
                 <p id="accountError" class="error-message" role="alert"></p>
                 <button class="button primary" type="submit">Hisob yaratish</button>
               </form>
               <div class="admin-subsection"><h3>Hisoblar</h3><div id="accountList"></div></div>
             </section>
           </div>
-          <div class="footer-note">Demo rejimi: hisoblar hamda media fayllar faqat ushbu brauzer va qurilmada saqlanadi. Sayt boshqa qurilmada yoki boshqa brauzerda ochilsa, ma’lumotlar ko‘rinmaydi. Internet orqali haqiqiy foydalanuvchilarga xizmat ko‘rsatish uchun server va himoyalangan hisob tizimi kerak bo‘ladi.</div>`;
-        renderAccountList(accounts);
+          <div class="footer-note">Rasmlar, videolar va tashrif buyuruvchi hisoblari Supabase serverida saqlanadi va barcha qurilmalarda ko‘rinadi.</div>`;
+        loadAccountList();
         bindAdminForms();
         $("#previewMuseum").addEventListener("click", renderHome);
+      }
+
+      async function loadAccountList() {
+        const accountList = $("#accountList");
+        if (!accountList) return;
+        accountList.innerHTML = `<div class="muted" style="padding-top:10px;font-size:.8rem">Hisoblar yuklanmoqda…</div>`;
+        try {
+          const accounts = await backendRequest("/rest/v1/profiles?select=id,username,display_name,role&role=eq.visitor&order=created_at.desc");
+          renderAccountList(accounts);
+        } catch (error) {
+          accountList.innerHTML = `<div class="error-message" role="alert">${escapeHtml(error.message)}</div>`;
+        }
       }
 
       function renderAccountList(accounts) {
         const accountList = $("#accountList");
         if (!accountList) return;
-        if (accounts.length === 0) {
+        if (!accounts.length) {
           accountList.innerHTML = `<div class="muted" style="padding-top:10px;font-size:.8rem">Hali hisob yaratilmagan.</div>`;
           return;
         }
-        accountList.innerHTML = accounts.map((account) => `<div class="account-row"><span><strong>${escapeHtml(account.name)}</strong><br><span class="muted">Login: ${escapeHtml(account.username)}</span></span><button type="button" class="button small danger" data-delete-account="${escapeHtml(account.username)}">O‘chirish</button></div>`).join("");
+        accountList.innerHTML = accounts.map((account) => `<div class="account-row"><span><strong>${escapeHtml(account.display_name)}</strong><br><span class="muted">Login: ${escapeHtml(account.username)}</span></span><button type="button" class="button small danger" data-delete-account="${escapeHtml(account.username)}">O‘chirish</button></div>`).join("");
         accountList.querySelectorAll("[data-delete-account]").forEach((button) => {
-          button.addEventListener("click", () => {
-            const remaining = accounts.filter((account) => account.username !== button.dataset.deleteAccount);
-            localStorage.setItem("oston-accounts", JSON.stringify(remaining));
-            renderAccountList(remaining);
-            showToast("Tashrif buyuruvchi hisobi o‘chirildi.");
+          button.addEventListener("click", async () => {
+            const username = button.dataset.deleteAccount;
+            if (!window.confirm(`${username} hisobini o‘chirmoqchimisiz?`)) return;
+            button.disabled = true;
+            try {
+              await invokeVisitorFunction({ action: "delete", username });
+              await loadAccountList();
+              showToast("Tashrif buyuruvchi hisobi o‘chirildi.");
+            } catch (error) {
+              button.disabled = false;
+              showToast(error.message);
+            }
           });
         });
       }
@@ -1151,9 +1294,9 @@
             preview.textContent = "Tanlangan fayl shu yerda ko‘rinadi.";
             return;
           }
-          if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+          if (!supportedMediaTypes.has(file.type)) {
             fileInput.value = "";
-            preview.textContent = "Faqat surat va video fayllari qabul qilinadi.";
+            preview.textContent = "JPG, PNG, GIF, WebP, MP4, WebM yoki MOV fayllari qabul qilinadi.";
             return;
           }
           previewUrl = URL.createObjectURL(file);
@@ -1167,72 +1310,108 @@
           const error = $("#uploadError");
           error.textContent = "";
           const file = fileInput.files[0];
-          if (!file || (!file.type.startsWith("image/") && !file.type.startsWith("video/"))) {
-            error.textContent = "Iltimos, surat yoki video faylini tanlang.";
+          if (!file || !supportedMediaTypes.has(file.type)) {
+            error.textContent = "JPG, PNG, GIF, WebP, MP4, WebM yoki MOV surat/video faylini tanlang.";
             return;
           }
           if (file.size > 50 * 1024 * 1024) {
             error.textContent = "Fayl hajmi 50 MB dan oshmasligi kerak.";
             return;
           }
+          const uploadButton = event.submitter;
+          if (uploadButton) uploadButton.disabled = true;
+          let uploadedPath = null;
           try {
-            await mediaRequest("readwrite", (store) => store.add({
-              room: Number($("#mediaRoom").value),
-              title: $("#mediaTitle").value.trim(),
-              description: $("#mediaDescription").value.trim(),
-              type: file.type,
-              file,
-              createdAt: Date.now()
-            }));
+            const room = Number($("#mediaRoom").value);
+            const extensionByType = {
+              "image/jpeg": ".jpg", "image/png": ".png", "image/gif": ".gif", "image/webp": ".webp",
+              "video/mp4": ".mp4", "video/webm": ".webm", "video/quicktime": ".mov"
+            };
+            uploadedPath = `room/${room}/${crypto.randomUUID()}${extensionByType[file.type]}`;
+            await backendRequest(`/storage/v1/object/museum-media/${uploadedPath}`, {
+              method: "POST",
+              body: file,
+              headers: { "Content-Type": file.type, "x-upsert": "false" }
+            });
+            try {
+              await backendRequest("/rest/v1/museum_media", {
+                method: "POST",
+                body: {
+                  room,
+                  title: $("#mediaTitle").value.trim(),
+                  description: $("#mediaDescription").value.trim(),
+                  storage_path: uploadedPath,
+                  content_type: file.type,
+                  created_by: currentUser.id
+                },
+                headers: { Prefer: "return=minimal" }
+              });
+            } catch (metadataError) {
+              try {
+                await backendRequest("/storage/v1/object/museum-media", {
+                  method: "DELETE",
+                  body: { prefixes: [uploadedPath] }
+                });
+              } catch (cleanupError) {
+                console.error("Yuklangan media faylini tozalab bo‘lmadi:", cleanupError);
+                throw new Error(`${metadataError.message} Yuklangan faylni Storage’dan avtomatik o‘chirib bo‘lmadi.`);
+              }
+              throw metadataError;
+            }
             $("#uploadForm").reset();
             if (previewUrl) URL.revokeObjectURL(previewUrl);
             previewUrl = null;
             $("#uploadPreview").textContent = "Tanlangan fayl shu yerda ko‘rinadi.";
             showToast("Ko‘rgazma saqlandi. Endi u tashrif buyuruvchilarga ko‘rinadi.");
           } catch (saveError) {
-            error.textContent = `${saveError.message} Xotira to‘la bo‘lishi mumkin.`;
+            error.textContent = saveError.message;
+          } finally {
+            if (uploadButton) uploadButton.disabled = false;
           }
         });
 
-        $("#accountForm").addEventListener("submit", (event) => {
+        $("#accountForm").addEventListener("submit", async (event) => {
           event.preventDefault();
           const error = $("#accountError");
           error.textContent = "";
           const name = $("#accountName").value.trim();
           const username = $("#accountUsername").value.trim();
           const password = $("#accountPassword").value;
-          if (!/^[A-Za-z0-9._-]+$/.test(username)) {
+          if (!/^[A-Za-z0-9._-]{1,30}$/.test(username)) {
             error.textContent = "Login faqat lotin harflari, raqam, nuqta, chiziqcha yoki pastki chiziqdan iborat bo‘lsin.";
             return;
           }
-          if (username.toLowerCase() === ADMIN.username) {
-            error.textContent = "Bu login band. Boshqa login tanlang.";
+          if (!name || name.length > 60 || password.length < 8 || password.length > 72) {
+            error.textContent = "Ismni kiriting va 8–72 belgili parol tanlang.";
             return;
           }
-          let stored;
+          const createButton = event.submitter;
+          if (createButton) createButton.disabled = true;
           try {
-            stored = JSON.parse(localStorage.getItem("oston-accounts") || "[]");
-            if (!Array.isArray(stored)) throw new Error("Hisoblar ro‘yxati noto‘g‘ri.");
-          } catch {
-            error.textContent = "Hisoblar ro‘yxatini o‘qib bo‘lmadi. Brauzer xotirasini tekshiring.";
-            return;
+            await invokeVisitorFunction({ action: "create", name, username, password });
+            $("#accountForm").reset();
+            await loadAccountList();
+            showToast(`Hisob yaratildi. Login: ${username}`);
+          } catch (createError) {
+            error.textContent = createError.message;
+          } finally {
+            if (createButton) createButton.disabled = false;
           }
-          if (stored.some((account) => account.username.toLowerCase() === username.toLowerCase())) {
-            error.textContent = "Bu login allaqachon ishlatilgan.";
-            return;
-          }
-          stored.push({ name, username, password, role: "visitor" });
-          try {
-            localStorage.setItem("oston-accounts", JSON.stringify(stored));
-          } catch {
-            error.textContent = "Brauzer xotirasiga hisobni saqlab bo‘lmadi.";
-            return;
-          }
-          $("#accountForm").reset();
-          renderAccountList(stored);
-          showToast(`Hisob yaratildi. Login: ${username}`);
         });
       }
+
+      function initializeApp() {
+        try {
+          ensureBackendConfig();
+        } catch (error) {
+          $("#backendHint").innerHTML = `<strong>Server ulanmagan.</strong> ${escapeHtml(error.message)}`;
+          return;
+        }
+        $("#backendHint").innerHTML = `<strong>Tashrif buyuruvchimisiz?</strong> Login va parolni muzey administratoridan oling.<br><strong>Administrator:</strong> Supabase hisobingizdagi email va parol bilan kiring.`;
+        restoreSession();
+      }
+
+      initializeApp();
     })();
   </script>
   <script>
