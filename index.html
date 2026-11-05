@@ -236,6 +236,12 @@
           <p id="loginError" class="error-message" role="alert"></p>
           <button class="button primary" type="submit">Muzeyga kirish <span aria-hidden="true">→</span></button>
         </form>
+        <form id="passwordSetupForm" class="login-form hidden">
+          <div class="field"><label for="newPassword">Yangi parol (kamida 12 belgi)</label><input id="newPassword" type="password" minlength="12" maxlength="72" autocomplete="new-password" required></div>
+          <div class="field"><label for="confirmPassword">Yangi parolni takrorlang</label><input id="confirmPassword" type="password" minlength="12" maxlength="72" autocomplete="new-password" required></div>
+          <p id="passwordSetupError" class="error-message" role="alert"></p>
+          <button class="button primary" type="submit">Parolni saqlash va muzeyga kirish</button>
+        </form>
         <div id="backendHint" class="login-hint"><strong>Tashrif buyuruvchimisiz?</strong> Login va parolni muzey administratoridan oling.</div>
       </div>
     </div>
@@ -1408,8 +1414,54 @@
           return;
         }
         $("#backendHint").innerHTML = `<strong>Tashrif buyuruvchimisiz?</strong> Login va parolni muzey administratoridan oling.<br><strong>Administrator:</strong> Supabase hisobingizdagi email va parol bilan kiring.`;
+        const callback = new URLSearchParams(window.location.hash.slice(1));
+        const callbackType = callback.get("type");
+        if (callback.get("access_token") && callback.get("refresh_token") &&
+            ["invite", "recovery"].includes(callbackType)) {
+          saveAuthSession({
+            access_token: callback.get("access_token"),
+            refresh_token: callback.get("refresh_token"),
+            expires_in: Number(callback.get("expires_in")) || 3600,
+            expires_at: Number(callback.get("expires_at")) || 0,
+            token_type: callback.get("token_type") || "bearer"
+          });
+          history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+          $("#loginForm").classList.add("hidden");
+          $("#passwordSetupForm").classList.remove("hidden");
+          $("#backendHint").innerHTML = `<strong>Yangi parol o‘rnating.</strong> Tug‘ilgan sana yoki boshqa joyda ishlatiladigan parolni tanlamang.`;
+          return;
+        }
         restoreSession();
       }
+
+      $("#passwordSetupForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const error = $("#passwordSetupError");
+        error.textContent = "";
+        const password = $("#newPassword").value;
+        if (password.length < 12 || password.length > 72) {
+          error.textContent = "Parol 12–72 belgidan iborat bo‘lsin.";
+          return;
+        }
+        if (password !== $("#confirmPassword").value) {
+          error.textContent = "Kiritilgan parollar bir xil emas.";
+          return;
+        }
+        const submitButton = event.submitter;
+        if (submitButton) submitButton.disabled = true;
+        try {
+          await backendRequest("/auth/v1/user", { method: "PUT", body: { password } });
+          const user = await backendRequest("/auth/v1/user");
+          const profile = await getProfile(user.id, authSession.access_token);
+          $("#passwordSetupForm").reset();
+          $("#passwordSetupForm").classList.add("hidden");
+          showApp({ id: profile.id, username: profile.username, name: profile.display_name, role: profile.role });
+        } catch (setupError) {
+          error.textContent = setupError.message;
+        } finally {
+          if (submitButton) submitButton.disabled = false;
+        }
+      });
 
       initializeApp();
     })();
