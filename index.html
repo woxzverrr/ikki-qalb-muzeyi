@@ -944,11 +944,13 @@
             { x: right, y: top, z: wallZ + toward * .018 },
             { x: left, y: top, z: wallZ + toward * .018 }
           ], "#302923");
+          const imageLeft = upper ? left + .045 : right - .045;
+          const imageRight = upper ? right - .045 : left + .045;
           addGameImage(primitives, project, item.element, [
-            { x: left + .045, y: bottom + .045, z: wallZ + toward * .035 },
-            { x: right - .045, y: bottom + .045, z: wallZ + toward * .035 },
-            { x: right - .045, y: top - .045, z: wallZ + toward * .035 },
-            { x: left + .045, y: top - .045, z: wallZ + toward * .035 }
+            { x: imageLeft, y: bottom + .045, z: wallZ + toward * .035 },
+            { x: imageRight, y: bottom + .045, z: wallZ + toward * .035 },
+            { x: imageRight, y: top - .045, z: wallZ + toward * .035 },
+            { x: imageLeft, y: top - .045, z: wallZ + toward * .035 }
           ]);
           if (item.isVideo) {
             addGameText(primitives, project, { x: right - .2, y: bottom + .2, z: wallZ + toward * .04 }, "▶", "#fff4da", .2);
