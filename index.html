@@ -129,15 +129,6 @@
     .game-crosshair { position: absolute; top: 50%; left: 50%; width: 15px; height: 15px; border: 1px solid rgba(255,244,218,.65); border-radius: 50%; transform: translate(-50%,-50%); pointer-events: none; }
     .game-crosshair:after { position: absolute; top: 50%; left: 50%; width: 3px; height: 3px; border-radius: 50%; background: #fff4da; content: ""; transform: translate(-50%,-50%); }
     .game-interact { position: absolute; top: 55%; left: 50%; transform: translateX(-50%); }
-    .game-gallery { position: absolute; top: 16px; right: 16px; width: min(300px,32%); max-height: calc(100% - 145px); overflow-y: auto; padding: 14px; border: 1px solid rgba(234,208,154,.26); border-radius: 7px; background: rgba(15,21,17,.91); backdrop-filter: blur(9px); }
-    .game-gallery h2 { margin: 4px 0 9px; font: 400 1.25rem var(--serif); }
-    .game-gallery > p { margin: 0 0 12px; color: #c1c3b9; font-size: .75rem; line-height: 1.5; }
-    .game-gallery .media-grid { grid-template-columns: 1fr; gap: 8px; }
-    .game-gallery .media-card img, .game-gallery .media-card video { max-height: 150px; aspect-ratio: 16/10; }
-    .game-gallery .media-card-copy { padding: 9px; }
-    .game-gallery .media-card-copy h3 { font-size: .97rem; }
-    .game-gallery .media-card-copy p { font-size: .72rem; }
-    .game-gallery .empty-state { padding: 16px 9px; font-size: .75rem; }
     .game-help { position: absolute; top: 17px; left: 50%; padding: 7px 11px; border-radius: 5px; background: rgba(15,21,17,.7); color: rgba(255,255,255,.76); font-size: .68rem; transform: translateX(-50%); pointer-events: none; white-space: nowrap; }
     .game-stage .scene-controls { z-index: 5; bottom: 16px; }
     .game-stage .joystick { background: rgba(16,21,17,.78); }
@@ -203,7 +194,7 @@
     .footer-note { margin-top: 35px; color: #858b7f; font-size: .72rem; line-height: 1.65; }
     @media (max-width: 980px) { .room-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } .login-shell { grid-template-columns: minmax(0,1fr) minmax(340px,.9fr); } }
     @media (max-width: 700px) { .login-shell { grid-template-columns: 1fr; } .login-art { min-height: 320px; padding: 23px 24px; } .login-art:before { top: 12%; right: 5%; width: 230px; } .login-art:after { top: 23%; right: 17%; width: 115px; } .art-copy { margin: 40px 0 0; } .art-copy h1 { max-width: 400px; margin: 12px 0; font-size: 3.2rem; } .art-copy p { max-width: 390px; margin-bottom: 0; font-size: .88rem; } .art-footer { margin-top: 21px; } .install-app-button { right: 24px; bottom: 17px; } .login-side { padding: 33px 24px 44px; } .room-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .welcome { align-items: flex-start; flex-direction: column; } .admin-layout { grid-template-columns: 1fr; } .topbar { padding-right: 18px; padding-left: 18px; } .user-chip span:last-child { display: none; } }
-    @media (max-width: 700px) { .game-stage { height: 68vh; min-height: 510px; } .game-hud { top: 10px; left: 10px; max-width: calc(100% - 20px); padding: 9px 10px; } .game-hud strong { font-size: 1rem; } .game-hud p { font-size: .66rem; } .game-help { top: auto; bottom: 105px; left: 50%; width: 43%; white-space: normal; text-align: center; font-size: .61rem; } .game-gallery { top: 112px; right: 10px; left: 10px; width: auto; max-height: 29%; padding: 9px; } .game-gallery h2 { font-size: 1rem; } .game-gallery > p { font-size: .67rem; } .game-gallery .media-card img, .game-gallery .media-card video { max-height: 100px; } .game-stage .scene-controls { bottom: 12px; padding: 0 11px; } .game-stage .joystick { width: 78px; height: 78px; flex-basis: 78px; } .game-stage .joystick-knob { width: 34px; height: 34px; } .game-stage .action-buttons { gap: 5px; } .game-stage .action-circle { width: 49px; height: 49px; } .game-stage .action-control.jump .action-circle { width: 58px; height: 58px; } .game-interact { top: 62%; } .house-scene { height: 800px; } .house-rooms { inset: 43px 10px 91px; grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-rows: repeat(5,minmax(0,1fr)); gap: 7px; } .house-rooms .room-card { padding: 10px; } .house-rooms .room-card h3 { font-size: .9rem; } .house-rooms .room-card p { font-size: .68rem; } .house-rooms .room-card-footer { margin-top: 8px; } .room-prompt { top: 7px; } }
+    @media (max-width: 700px) { .game-stage { height: 68vh; min-height: 510px; } .game-hud { top: 10px; left: 10px; max-width: calc(100% - 20px); padding: 9px 10px; } .game-hud strong { font-size: 1rem; } .game-hud p { font-size: .66rem; } .game-help { top: auto; bottom: 105px; left: 50%; width: 43%; white-space: normal; text-align: center; font-size: .61rem; } .game-stage .scene-controls { bottom: 12px; padding: 0 11px; } .game-stage .joystick { width: 78px; height: 78px; flex-basis: 78px; } .game-stage .joystick-knob { width: 34px; height: 34px; } .game-stage .action-buttons { gap: 5px; } .game-stage .action-circle { width: 49px; height: 49px; } .game-stage .action-control.jump .action-circle { width: 58px; height: 58px; } .game-interact { top: 62%; } .house-scene { height: 800px; } .house-rooms { inset: 43px 10px 91px; grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-rows: repeat(5,minmax(0,1fr)); gap: 7px; } .house-rooms .room-card { padding: 10px; } .house-rooms .room-card h3 { font-size: .9rem; } .house-rooms .room-card p { font-size: .68rem; } .house-rooms .room-card-footer { margin-top: 8px; } .room-prompt { top: 7px; } }
     @media (max-width: 480px) { .walk-scene { height: 350px; } .gallery-frame.one { left: 8%; } .gallery-frame.two { right: 8%; } .scene-help { bottom: 27px; width: 46%; white-space: normal; font-size: .62rem; } .joystick { width: 78px; height: 78px; flex-basis: 78px; } .joystick-knob { width: 34px; height: 34px; } .action-buttons { gap: 5px; } .action-circle { width: 49px; height: 49px; } .action-control.jump .action-circle { width: 58px; height: 58px; } .scene-controls { padding: 0 11px; } .house-scene { height: 790px; } .house-scene .scene-help { bottom: 24px; width: 38%; } .house-rooms .room-card h3 { font-size: .83rem; } .house-rooms .room-card p { font-size: .64rem; } .house-rooms .room-figure { font-size: 1.35rem; } }
     @media (max-width: 390px) { .room-grid { grid-template-columns: 1fr; } .room-card { min-height: 165px; } .brand-sub { letter-spacing: .09em; } .topbar-right { gap: 9px; } }
   </style>
@@ -298,7 +289,6 @@
       let gamePlayer = { x: 15, z: 10, yaw: 0, sitting: false, jumpUntil: 0, walkPhase: 0 };
       let gameCanvas = null;
       let gameResizeHandler = null;
-      let displayedGalleryRoom = null;
       let wallMedia = Array.from({ length: 10 }, () => []);
       let nearbyDoor = null;
       let joystickPointer = null;
@@ -469,18 +459,9 @@
           : `${storageBase}${result.signedURL.startsWith("/") ? result.signedURL : `/${result.signedURL}`}`;
       }
 
-      async function getRoomMedia(room) {
-        const records = await backendRequest(`/rest/v1/museum_media?select=id,room,title,description,storage_path,content_type,created_at&room=eq.${room}&order=created_at.desc`);
-        return Promise.all(records.map(async (record) => ({
-          ...record,
-          type: record.content_type,
-          url: await signedMediaUrl(record.storage_path)
-        })));
-      }
-
       async function getAllRoomMedia() {
         const rooms = await Promise.all(ROOMS.map((_, room) => backendRequest(
-          `/rest/v1/museum_media?select=id,room,title,description,storage_path,content_type,created_at&room=eq.${room}&order=created_at.desc&limit=2`
+          `/rest/v1/museum_media?select=id,room,title,description,storage_path,content_type,created_at&room=eq.${room}&order=created_at.desc`
         )));
         const records = rooms.flat();
         return Promise.all(records.map(async (record) => ({
@@ -614,7 +595,6 @@
           <div class="game-help">W / ↑ — yurish · A,D / ←,→ — burilish · E — xonaga kirish</div>
           <div class="game-crosshair" aria-hidden="true"></div>
           <button id="interactButton" class="button primary game-interact hidden" type="button"></button>
-          <section id="gameGallery" class="game-gallery hidden" aria-live="polite"><div class="eyebrow">UY ICHIDAGI KO‘RGAZMA</div><h2 id="galleryTitle"></h2><p id="galleryDescription"></p><div id="gameMedia" class="media-grid"></div></section>
           <div class="scene-controls"><div id="joystick" class="joystick" role="application" aria-label="Odamchani burish va oldinga yurgizish uchun joystick"><div id="joystickKnob" class="joystick-knob">●</div></div><div class="action-buttons"><button id="sitButton" class="action-control" type="button" aria-pressed="false"><span class="action-circle" aria-hidden="true">⌄</span><span>O‘tirish</span></button><button id="jumpButton" class="action-control jump" type="button"><span class="action-circle" aria-hidden="true">↑</span><span>Sakrash</span></button></div></div><span id="characterStatus" class="sr-only" aria-live="polite"></span>
         </section><p class="game-footnote">Joystickni yuqoriga itaring — oldinga yuring; chap/o‘ngga itaring — buriling. Kompyuterda W/A/S/D yoki strelkalardan foydalaning. E tugmasi yoki ekrandagi tugma bilan eshikdan o‘ting.</p>`;
         startGame();
@@ -630,7 +610,6 @@
         if (gameResizeHandler) window.removeEventListener("resize", gameResizeHandler);
         gameResizeHandler = null;
         gameCanvas = null;
-        displayedGalleryRoom = null;
         wallMedia.forEach((roomMedia) => roomMedia.forEach((item) => {
           if (item.element instanceof HTMLVideoElement) {
             item.element.pause();
@@ -940,13 +919,19 @@
         const centerX = (index % 5) * HOUSE.roomWidth + HOUSE.roomWidth / 2;
         const upper = index < 5;
         const toward = upper ? 1 : -1;
-        const wallZ = (upper ? HOUSE.hallTop : HOUSE.hallBottom) + toward * .025;
+        const wallZ = upper ? .09 : HOUSE.depth - .09;
         items.forEach((item, itemIndex) => {
-          const panelCenterX = centerX + (itemIndex === 0 ? -1.72 : 1.72);
+          const columns = Math.min(3, items.length);
+          const rows = Math.ceil(items.length / columns);
+          const column = itemIndex % columns;
+          const row = Math.floor(itemIndex / columns);
+          const panelCenterX = centerX + (column - (columns - 1) / 2) * 1.72;
+          const panelHeight = Math.min(1.3, (2.35 - (rows - 1) * .16) / rows);
+          const panelCenterY = 1.55 + ((rows - 1) / 2 - row) * (panelHeight + .16);
           const left = panelCenterX - .49;
           const right = panelCenterX + .49;
-          const bottom = .97;
-          const top = 2.28;
+          const bottom = panelCenterY - panelHeight / 2;
+          const top = panelCenterY + panelHeight / 2;
           addGamePolygon(primitives, project, [
             { x: left - .07, y: bottom - .07, z: wallZ },
             { x: right + .07, y: bottom - .07, z: wallZ },
@@ -980,7 +965,7 @@
             if (Number.isInteger(record.room) && recordsByRoom[record.room]) recordsByRoom[record.room].push(record);
           });
           recordsByRoom.forEach((roomRecords, roomIndex) => {
-            roomRecords.slice(0, 2).forEach((record) => {
+            roomRecords.forEach((record) => {
               let element;
               if (record.type.startsWith("image/")) {
                 element = new Image();
@@ -1022,6 +1007,7 @@
             { x: x2, y: 0, z: z2 }, { x: x1, y: 0, z: z2 }
           ], colors[index]);
           addRoomArtwork(primitives, project, index);
+          addWallMediaPanels(primitives, project, index);
         }
         addGamePolygon(primitives, project, [
           { x: 0, y: .008, z: HOUSE.hallTop }, { x: HOUSE.width, y: .008, z: HOUSE.hallTop },
@@ -1050,7 +1036,6 @@
           addBox(primitives, project, center + 1, 1.15, HOUSE.hallTop, .12, 2.3, .15, "#c49e66");
           addBox(primitives, project, center - 1, 1.15, HOUSE.hallBottom, .12, 2.3, .15, "#c49e66");
           addBox(primitives, project, center + 1, 1.15, HOUSE.hallBottom, .12, 2.3, .15, "#c49e66");
-          addWallMediaPanels(primitives, project, room);
         }
 
         for (let x = .5; x < HOUSE.width; x += 1) {
@@ -1160,46 +1145,20 @@
         activeRoom = nearbyDoor.index;
       }
 
-      function updateRoomOverlay(roomIndex, door) {
+      function updateRoomStatus(roomIndex, door) {
         const title = $("#gameRoomName");
         const hint = $("#gameRoomHint");
         const badge = $("#gameRoomBadge");
-        const gallery = $("#gameGallery");
         const button = $("#interactButton");
-        if (roomIndex !== displayedGalleryRoom) {
-          displayedGalleryRoom = roomIndex;
-          if (roomIndex === null) {
-            gallery.classList.add("hidden");
-            $("#gameMedia").innerHTML = "";
-          } else {
-            const room = ROOMS[roomIndex];
-            title.textContent = room.name;
-            hint.textContent = room.description;
-            badge.textContent = `Xona ${String(roomIndex + 1).padStart(2, "0")} / ${ROOMS.length}`;
-            gallery.classList.remove("hidden");
-            $("#galleryTitle").textContent = room.name;
-            $("#galleryDescription").textContent = room.description;
-            $("#gameMedia").innerHTML = `<div class="empty-state">Ko‘rgazmalar yuklanmoqda…</div>`;
-            getRoomMedia(roomIndex).then((items) => {
-              if (displayedGalleryRoom !== roomIndex) return;
-              if (items.length === 0) {
-                $("#gameMedia").innerHTML = `<div class="empty-state">Bu xonada hali surat yoki video yo‘q.</div>`;
-                return;
-              }
-              $("#gameMedia").innerHTML = items.map((item) => {
-                return `<article class="media-card">${item.type.startsWith("image/")
-                  ? `<img src="${item.url}" alt="${escapeHtml(item.title)}">`
-                  : `<video src="${item.url}" controls preload="metadata"></video>`}
-                  <div class="media-card-copy"><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.description || " ")}</p></div></article>`;
-              }).join("");
-            }).catch((error) => {
-              if (displayedGalleryRoom === roomIndex) $("#gameMedia").innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
-            });
-          }
-        } else if (roomIndex === null) {
+        if (roomIndex === null) {
           title.textContent = "Uy yo‘lagi";
           hint.textContent = door ? `${ROOMS[door.index].name} xonasi eshigi yonidasiz.` : "Uy ichida erkin yuring va xonalar bo‘ylab sayr qiling.";
           badge.textContent = "10 xona · bitta uy";
+        } else {
+          const room = ROOMS[roomIndex];
+          title.textContent = room.name;
+          hint.textContent = room.description;
+          badge.textContent = `Xona ${String(roomIndex + 1).padStart(2, "0")} / ${ROOMS.length}`;
         }
         nearbyDoor = door;
         button.classList.toggle("hidden", !door);
@@ -1222,7 +1181,7 @@
         if (Math.abs(forward) > .08) gamePlayer.walkPhase += elapsed * .014 * Math.abs(forward);
         const room = getCurrentRoom();
         activeRoom = room;
-        updateRoomOverlay(room, room === null ? findNearbyDoor() : null);
+        updateRoomStatus(room, room === null ? findNearbyDoor() : null);
       }
 
       function drawGame(timestamp) {
