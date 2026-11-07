@@ -1,4 +1,4 @@
-const CACHE_NAME = "ikki-qalb-app-v4";
+const CACHE_NAME = "ikki-qalb-app-v5";
 const APP_SHELL = [
   "./",
   "./index.html",

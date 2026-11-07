@@ -67,6 +67,8 @@
     .field textarea { min-height: 100px; resize: vertical; }
     .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent); }
     .login-form .button { width: 100%; margin-top: 9px; }
+    .login-link { display: block; width: fit-content; margin: 10px auto 0; border: 0; background: none; color: var(--accent-light); font-size: .82rem; text-decoration: underline; text-underline-offset: 3px; }
+    .login-link:hover { color: var(--text); }
     .role-switch { display: flex; gap: 5px; padding: 4px; border: 1px solid var(--line); border-radius: 8px; background: #151b17; }
     .role-switch button { flex: 1; min-height: 37px; border: 0; border-radius: 5px; background: transparent; color: var(--muted); font-size: .8rem; font-weight: 650; }
     .role-switch button.active { background: var(--panel-light); color: var(--accent-light); }
@@ -235,6 +237,14 @@
           <div class="field"><label for="loginPassword">Parol</label><input id="loginPassword" name="password" type="password" autocomplete="current-password" required placeholder="Parolingizni kiriting"></div>
           <p id="loginError" class="error-message" role="alert"></p>
           <button class="button primary" type="submit">Muzeyga kirish <span aria-hidden="true">→</span></button>
+          <button id="showPasswordRecovery" class="login-link" type="button">Parolni unutdingizmi?</button>
+        </form>
+        <form id="passwordRecoveryForm" class="login-form hidden">
+          <div class="field"><label for="recoveryEmail">Hisobingizga ulangan email</label><input id="recoveryEmail" type="email" autocomplete="email" required placeholder="email@example.com"></div>
+          <p class="muted" style="font-size:.78rem;line-height:1.55">Tiklash havolasi emailga yuboriladi. Login bilan yaratilgan tashrif buyuruvchi hisobi bo‘lsa, muzey administratoriga murojaat qiling.</p>
+          <p id="passwordRecoveryMessage" class="error-message" role="status" aria-live="polite"></p>
+          <button class="button primary" type="submit">Tiklash havolasini yuborish</button>
+          <button id="cancelPasswordRecovery" class="login-link" type="button">Kirishga qaytish</button>
         </form>
         <form id="passwordSetupForm" class="login-form hidden">
           <div class="field"><label for="newPassword">Yangi parol (kamida 12 belgi)</label><input id="newPassword" type="password" minlength="12" maxlength="72" autocomplete="new-password" required></div>
@@ -524,6 +534,40 @@
           showApp(await signIn(username, password, loginRole));
         } catch (loginError) {
           error.textContent = loginError.message;
+        }
+      });
+
+      $("#showPasswordRecovery").addEventListener("click", () => {
+        $("#loginForm").classList.add("hidden");
+        $("#passwordRecoveryForm").classList.remove("hidden");
+        $("#recoveryEmail").value = loginRole === "admin" ? $("#loginName").value.trim() : "";
+        $("#passwordRecoveryMessage").textContent = "";
+      });
+
+      $("#cancelPasswordRecovery").addEventListener("click", () => {
+        $("#passwordRecoveryForm").classList.add("hidden");
+        $("#loginForm").classList.remove("hidden");
+        $("#passwordRecoveryMessage").textContent = "";
+      });
+
+      $("#passwordRecoveryForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const message = $("#passwordRecoveryMessage");
+        message.textContent = "";
+        const submitButton = event.submitter;
+        if (submitButton) submitButton.disabled = true;
+        try {
+          const redirectTo = `${window.location.origin}${window.location.pathname}`;
+          await backendRequest(`/auth/v1/recover?redirect_to=${encodeURIComponent(redirectTo)}`, {
+            method: "POST",
+            body: { email: $("#recoveryEmail").value.trim() },
+            token: backendConfig.anonKey
+          });
+          message.textContent = "Agar bu email hisobga ulangan bo‘lsa, parolni tiklash havolasi yuborildi. Email va Spam papkasini tekshiring.";
+        } catch (recoveryError) {
+          message.textContent = `Tiklash xatini yuborib bo‘lmadi: ${recoveryError.message}`;
+        } finally {
+          if (submitButton) submitButton.disabled = false;
         }
       });
 
@@ -1427,6 +1471,8 @@
           });
           history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
           $("#loginForm").classList.add("hidden");
+          $("#passwordRecoveryForm").classList.add("hidden");
+          document.querySelector(".role-switch").classList.add("hidden");
           $("#passwordSetupForm").classList.remove("hidden");
           $("#backendHint").innerHTML = `<strong>Yangi parol o‘rnating.</strong> Tug‘ilgan sana yoki boshqa joyda ishlatiladigan parolni tanlamang.`;
           return;
@@ -1455,6 +1501,8 @@
           const profile = await getProfile(user.id, authSession.access_token);
           $("#passwordSetupForm").reset();
           $("#passwordSetupForm").classList.add("hidden");
+          document.querySelector(".role-switch").classList.remove("hidden");
+          $("#loginForm").classList.remove("hidden");
           showApp({ id: profile.id, username: profile.username, name: profile.display_name, role: profile.role });
         } catch (setupError) {
           error.textContent = setupError.message;
